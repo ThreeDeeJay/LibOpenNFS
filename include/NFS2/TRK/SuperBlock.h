@@ -3,16 +3,16 @@
 #include <cstdint>
 #include <vector>
 
-#include "Common/Enums.h"
-#include "Common/ISerializable.h"
+#include "Common/Utils.h"
 #include "NFS2/Common.h"
+
 #include "NFS2/TRK/TrackBlock.h"
 
 namespace LibOpenNFS
 {
     namespace NFS2
     {
-        template <typename Platform>
+        template <Platform platform>
         class SuperBlock : public IDeserializable
         {
         public:
@@ -20,7 +20,7 @@ namespace LibOpenNFS
             uint32_t superBlockSize;
             uint32_t nBlocks;
             uint32_t padding;
-            std::vector<TrackBlock<Platform>> trackBlocks;
+            std::vector<TrackBlock<platform>> trackBlocks;
             std::vector<uint32_t> blockOffsets;
 
         private:

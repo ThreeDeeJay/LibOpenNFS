@@ -1,12 +1,15 @@
 #pragma once
 
-#include "../../Common/ISerializable.h"
+#include <cstdint>
+#include <vector>
+
+#include "Common/Utils.h"
 
 namespace LibOpenNFS
 {
     namespace NFS3
     {
-        struct HEADER
+        struct Header
         {
             char fntfChk[4];
             uint32_t fileSize;
@@ -19,7 +22,7 @@ namespace LibOpenNFS
             uint32_t fontMapOffset;
         };
 
-        struct CHAR_TABLE_ENTRY
+        struct CharTableEntry
         {
             uint16_t asciiCode;
             uint8_t width;
@@ -32,20 +35,15 @@ namespace LibOpenNFS
             uint8_t topPadding;
         };
 
-        class FfnFile : ISerializable
+        class FfnFile : public IDeserializable
         {
         public:
-            FfnFile() = default;
+            Header header;
 
-            static bool Load(const std::string &ffnPath, FfnFile &ffnFile);
-            static void Save(const std::string &ffnPath, FfnFile &ffnFile);
-
-            HEADER header;
-            std::vector<CHAR_TABLE_ENTRY> characters;
+            std::vector<CharTableEntry> characters;
 
         private:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+            void SerializeIn(std::istream &ifstream) override;
         };
     } // namespace NFS3
 } // namespace LibOpenNFS

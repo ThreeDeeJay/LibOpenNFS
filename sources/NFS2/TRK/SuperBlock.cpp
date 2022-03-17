@@ -1,10 +1,9 @@
 #include "NFS2/TRK/SuperBlock.h"
-#include "Common/Utils.h"
 
 using namespace LibOpenNFS::NFS2;
 
-template <typename Platform>
-void SuperBlock<Platform>::SerializeIn(std::istream &ifstream)
+template <Platform platform>
+void SuperBlock<platform>::SerializeIn(std::istream &ifstream)
 {
     // TODO: Gross, needs to be relative//passed in
     std::streampos superblockOffset = ifstream.tellg();
@@ -24,12 +23,12 @@ void SuperBlock<Platform>::SerializeIn(std::istream &ifstream)
             // TODO: Fix this
             ifstream.seekg((uint32_t) superblockOffset + blockOffsets[blockIdx], std::ios_base::beg);
 
-            TrackBlock<Platform> trackBlock;
+            TrackBlock<platform> trackBlock;
             ifstream >> trackBlock;
             trackBlocks.push_back(std::move(trackBlock));
         }
     }
 }
 
-template class LibOpenNFS::NFS2::SuperBlock<PS1>;
-template class LibOpenNFS::NFS2::SuperBlock<PC>;
+template class LibOpenNFS::NFS2::SuperBlock<Platform::PS1>;
+template class LibOpenNFS::NFS2::SuperBlock<Platform::PC>;

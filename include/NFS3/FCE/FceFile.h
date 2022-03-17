@@ -1,6 +1,11 @@
 #pragma once
 
-#include "../../Common/ISerializable.h"
+#include <cstdint>
+#include <vector>
+
+#include <glm/glm.hpp>
+
+#include "Common/Utils.h"
 
 namespace LibOpenNFS
 {
@@ -27,14 +32,9 @@ namespace LibOpenNFS
             std::vector<Triangle> triangles;
         };
 
-        class FceFile : ISerializable
+        class FceFile : public IDeserializable
         {
         public:
-            FceFile() = default;
-
-            static bool Load(const std::string &fcePath, FceFile &fceFile);
-            static void Save(const std::string &fcePath, FceFile &fceFile);
-
             uint32_t unknown;
             uint32_t nTriangles;
             uint32_t nVertices;
@@ -64,8 +64,7 @@ namespace LibOpenNFS
             std::vector<CarPart> carParts;
 
         private:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+            void SerializeIn(std::istream &ifstream) override;
         };
     } // namespace NFS3
 } // namespace LibOpenNFS

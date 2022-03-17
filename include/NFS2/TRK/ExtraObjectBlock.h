@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <vector>
 
-#include "Common/Enums.h"
-#include "Common/ISerializable.h"
+#include "Common/Utils.h"
 #include "NFS2/Common.h"
-#include "StructureRefBlock.h"
-#include "StructureBlock.h"
+
+#include "NFS2/TRK/StructureBlock.h"
+#include "NFS2/TRK/StructureRefBlock.h"
 
 namespace LibOpenNFS
 {
@@ -37,7 +37,7 @@ namespace LibOpenNFS
         };
 
         // ---- COL Specific Extra Blocks ----
-        struct TEXTURE_BLOCK
+        struct TextureBlock
         {
             // XBID = 2
             uint16_t texNumber; // Texture number in QFS file
@@ -46,10 +46,10 @@ namespace LibOpenNFS
             uint8_t RGBlack[3]; // Usually black
         };
 
-        struct COLLISION_BLOCK
+        struct CollisionBlock
         {
             // XBID = 15
-            VERT_HIGHP trackPosition; // Position auint32_t track on a single line, either at center or side of road
+            VertexHighP trackPosition; // Position auint32_t track on a single line, either at center or side of road
             int8_t vertVec[3];        // The three vectors are mutually orthogonal, and are normalized so that
             int8_t fwdVec[3];         // each vector's norm is slightly less than 128. Each vector is coded on
             int8_t rightVec[3];       // 3 bytes : its x, z and y components are each signed 8-bit values.
@@ -68,7 +68,7 @@ namespace LibOpenNFS
 
         // ---- TRK Specific Extra Blocks ----
         // Matches number of NP1 polygons in corresponding trackblock
-        struct POLY_TYPE
+        struct PolyType
         {
             // XBID = 5
             uint8_t xblockRef; // Refers to an entry in the XBID=13 extrablock
@@ -76,13 +76,13 @@ namespace LibOpenNFS
         };
 
         // Matches number of full resolution polygons
-        struct MEDIAN_BLOCK
+        struct MedianBlock
         {
             // XBID = 6
             uint8_t refPoly[8];
         };
 
-        struct LANE_BLOCK
+        struct LaneBlock
         {
             // XBID = 9
             uint8_t vertRef;  // Inside B3D structure: 0 to nFullRes + nStickToNext
@@ -91,18 +91,18 @@ namespace LibOpenNFS
             uint8_t polyRef;  // Inside Full-res B3D structure, 0 to nFullRes
         };
 
-        struct VROAD_VEC
+        struct VRoadVector
         {
             int16_t x, z, y;
         };
 
-        struct VROAD
+        struct VRoad
         {
-            VROAD_VEC normalVec;
-            VROAD_VEC forwardVec;
+            VRoadVector normalVec;
+            VRoadVector forwardVec;
         };
 
-        template <typename Platform>
+        template <Platform platform>
         class ExtraObjectBlock : public IDeserializable
         {
         public:
@@ -113,21 +113,21 @@ namespace LibOpenNFS
 
             // Type 2
             uint16_t nTextures = 0;
-            std::vector<TEXTURE_BLOCK> polyToQfsTexTable;
+            std::vector<TextureBlock> polyToQfsTexTable;
 
             // Type 4
             uint16_t nNeighbours = 0;
             std::vector<int16_t> blockNeighbours;
 
             // Type 5
-            std::vector<POLY_TYPE> polyTypes;
+            std::vector<PolyType> polyTypes;
 
             // Type 6
-            std::vector<MEDIAN_BLOCK> medianData;
+            std::vector<MedianBlock> medianData;
 
             // Type 8
             uint16_t nStructures = 0;
-            std::vector<StructureBlock<Platform>> structures;
+            std::vector<StructureBlock<platform>> structures;
 
             // Type 7, 18, 19
             uint16_t nStructureReferences = 0;
@@ -135,21 +135,21 @@ namespace LibOpenNFS
 
             // Type 9
             uint16_t nLanes = 0;
-            std::vector<LANE_BLOCK> laneData;
+            std::vector<LaneBlock> laneData;
 
             // Type 10?
             uint16_t nUnknownVerts = 0;
-            std::vector<typename Platform::VERT> unknownVerts;
+            std::vector<Vertex<platform>> unknownVerts;
             
             // Type 13
             uint16_t nVroad = 0;
-            std::vector<VROAD> vroadData; // Reference using XBID 5
+            std::vector<VRoad> vroadData; // Reference using XBID 5
             // Type 13 NFS2 PS1 Type (This looks hacky, but this struct doesn't match NFS3 PS1 or NFS2 PC)
-            std::vector<VROAD_VEC> ps1VroadData;
+            std::vector<VRoadVector> ps1VroadData;
 
             // Type 15
             uint16_t nCollisionData = 0;
-            std::vector<COLLISION_BLOCK> collisionData;
+            std::vector<CollisionBlock> collisionData;
 
         protected:
             void SerializeIn(std::istream &ifstream) override;

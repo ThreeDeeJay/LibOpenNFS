@@ -1,76 +1,68 @@
-#include "ExtraObjectBlock.h"
+#include "NFS3/FRD/ExtraObjectBlock.h"
 
 using namespace LibOpenNFS::NFS3;
 
-ExtraObjectBlock::ExtraObjectBlock(std::istream &frd)
+void ExtraObjectBlock::SerializeIn(std::istream &ifstream)
 {
-    ASSERT(this->SerializeIn(frd), "Failed to serialize ExtraObjectBlock from file stream");
-}
-
-bool ExtraObjectBlock::SerializeIn(std::istream &ifstream)
-{
-    SAFE_READ(ifstream, &(nobj), sizeof(uint32_t));
+    Utils::SafeRead(ifstream, nobj);
     obj.reserve(nobj);
 
     for (uint32_t xobjIdx = 0; xobjIdx < nobj; ++xobjIdx)
     {
         ExtraObjectData x;
 
-        SAFE_READ(ifstream, &x.crosstype, sizeof(uint32_t));
-        SAFE_READ(ifstream, &x.crossno, sizeof(uint32_t));
-        SAFE_READ(ifstream, &x.unknown, sizeof(uint32_t));
+        Utils::SafeRead(ifstream, x.crosstype);
+        Utils::SafeRead(ifstream, x.crossno);
+        Utils::SafeRead(ifstream, x.unknown);
 
         if (x.crosstype == 4)
         {
             // Basic objects
-            SAFE_READ(ifstream, &x.ptRef, sizeof(glm::vec3));
-            SAFE_READ(ifstream, &x.AnimMemory, sizeof(uint32_t));
+            Utils::SafeRead(ifstream, x.ptRef);
+            Utils::SafeRead(ifstream, x.AnimMemory);
         }
         else if (x.crosstype == 3)
         {
             // Animated objects
-            SAFE_READ(ifstream, &x.unknown3, sizeof(uint16_t) * 9);
-            SAFE_READ(ifstream, &x.type3, sizeof(uint8_t));
-            SAFE_READ(ifstream, &x.objno, sizeof(uint8_t));
-            SAFE_READ(ifstream, &x.nAnimLength, sizeof(uint16_t));
-            SAFE_READ(ifstream, &x.AnimDelay, sizeof(uint16_t));
+            Utils::SafeRead(ifstream, x.unknown3);
+            Utils::SafeRead(ifstream, x.type3);
+            Utils::SafeRead(ifstream, x.objno);
+            Utils::SafeRead(ifstream, x.nAnimLength);
+            Utils::SafeRead(ifstream, x.AnimDelay);
 
             // Sanity Check
             if (x.type3 != 3)
-            {
-                return false;
-            }
-
+                throw;
+            
             x.animData.resize(x.nAnimLength);
-            SAFE_READ(ifstream, x.animData.data(), sizeof(AnimData) * x.nAnimLength);
+            Utils::SafeRead(ifstream, x.animData.begin(), x.animData.end());
+
             // make a ref point from first anim position
             x.ptRef = Utils::FixedToFloat(x.animData[0].pt);
         }
         else
-            return false; // unknown object type
+            throw; // unknown object type
 
         // Get number of vertices
-        SAFE_READ(ifstream, &(x.nVertices), sizeof(uint32_t));
+        Utils::SafeRead(ifstream, x.nVertices);
 
         // Get vertices
         x.vert.resize(x.nVertices);
-        SAFE_READ(ifstream, x.vert.data(), sizeof(glm::vec3) * x.nVertices);
+        Utils::SafeRead(ifstream, x.vert.begin(), x.vert.end());
 
         // Per vertex shading data (RGBA)
         x.vertShading.resize(x.nVertices);
-        SAFE_READ(ifstream, x.vertShading.data(), sizeof(uint32_t) * x.nVertices);
+        Utils::SafeRead(ifstream, x.vertShading.begin(), x.vertShading.end());
 
         // Get number of polygons
-        SAFE_READ(ifstream, &(x.nPolygons), sizeof(uint32_t));
+        Utils::SafeRead(ifstream, x.nPolygons);
 
         // Grab the polygons
         x.polyData.resize(x.nPolygons);
-        SAFE_READ(ifstream, x.polyData.data(), sizeof(PolygonData) * x.nPolygons);
+        Utils::SafeRead(ifstream, x.polyData.begin(), x.polyData.end());
 
         obj.push_back(x);
     }
-
-    return true;
 }
 
 void ExtraObjectBlock::SerializeOut(std::ostream &ofstream)

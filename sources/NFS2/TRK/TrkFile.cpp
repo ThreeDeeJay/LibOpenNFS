@@ -1,21 +1,18 @@
-#include "NFS2/TRK/TrkFile.h"
-#include "Common/Utils.h"
-
 #include <cstring>
+
+#include "NFS2/TRK/TrkFile.h"
 
 using namespace LibOpenNFS::NFS2;
 
-template <typename Platform>
-void TrkFile<Platform>::SerializeIn(std::istream &ifstream)
+template <Platform platform>
+void TrkFile<platform>::SerializeIn(std::istream &ifstream)
 {
     // Check we're in a valid TRK file
     Utils::SafeRead(ifstream, header);
 
     // Header should contain TRAC
     if (strncmp(header, "TRAC", sizeof(header)) != 0)
-    {
         throw std::runtime_error{"Invalid TRK Header"};
-    }
 
     // Unknown header data
     Utils::SafeRead(ifstream, unknownHeader);
@@ -39,11 +36,11 @@ void TrkFile<Platform>::SerializeIn(std::istream &ifstream)
         //  Jump to the super block
         ifstream.seekg(superBlockOffsets[superBlockIdx], std::ios_base::beg);
 
-        SuperBlock<Platform> superBlock;
+        SuperBlock<platform> superBlock;
         ifstream >> superBlock;
         superBlocks.push_back(std::move(superBlock));
     }
 }
 
-template class LibOpenNFS::NFS2::TrkFile<PS1>;
-template class LibOpenNFS::NFS2::TrkFile<PC>;
+template class LibOpenNFS::NFS2::TrkFile<Platform::PS1>;
+template class LibOpenNFS::NFS2::TrkFile<Platform::PC>;

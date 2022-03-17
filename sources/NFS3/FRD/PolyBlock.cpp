@@ -1,41 +1,33 @@
-#include "PolyBlock.h"
+#include "NFS3/FRD/PolyBlock.h"
 
 using namespace LibOpenNFS::NFS3;
 
-PolyBlock::PolyBlock(std::istream &frd, uint32_t nTrackBlockPolys) : m_nTrackBlockPolys(nTrackBlockPolys), obj{}
+void PolyBlock::SerializeIn(std::istream &ifstream)
 {
-    ASSERT(this->SerializeIn(frd), "Failed to serialize PolyBlock from file stream");
-}
-
-bool PolyBlock::SerializeIn(std::istream &ifstream)
-{
-    for (uint32_t polyBlockIdx = 0; polyBlockIdx < NUM_POLYGON_BLOCKS; polyBlockIdx++)
+    for (uint32_t polyBlockIdx = 0; polyBlockIdx < cNumPolygonBlocks; polyBlockIdx++)
     {
-        SAFE_READ(ifstream, &sz[polyBlockIdx], sizeof(uint32_t));
+        Utils::SafeRead(ifstream, sz[polyBlockIdx]);
         if (sz[polyBlockIdx] != 0)
         {
-            SAFE_READ(ifstream, &szdup[polyBlockIdx], sizeof(uint32_t));
+            Utils::SafeRead(ifstream, szdup[polyBlockIdx]);
             if (szdup[polyBlockIdx] != sz[polyBlockIdx])
-            {
-                return false;
-            }
+                throw;
+
             poly[polyBlockIdx] = std::vector<PolygonData>(sz[polyBlockIdx]);
-            SAFE_READ(ifstream, poly[polyBlockIdx].data(), sizeof(PolygonData) * sz[polyBlockIdx]);
+            Utils::SafeRead(ifstream, poly[polyBlockIdx].begin(), poly[polyBlockIdx].end());
         }
     }
 
     // Sanity check
     if (sz[4] != m_nTrackBlockPolys)
-    {
-        return false;
-    }
+        throw;
 
     for (auto &o : obj)
     {
-        SAFE_READ(ifstream, &o.n1, sizeof(uint32_t));
+        Utils::SafeRead(ifstream, o.n1);
         if (o.n1 > 0)
         {
-            SAFE_READ(ifstream, &o.n2, sizeof(uint32_t));
+            Utils::SafeRead(ifstream, o.n2);
 
             o.types.resize(o.n2);
             o.numpoly.resize(o.n2);
@@ -46,14 +38,14 @@ bool PolyBlock::SerializeIn(std::istream &ifstream)
 
             for (uint32_t k = 0; k < o.n2; ++k)
             {
-                SAFE_READ(ifstream, &o.types[k], sizeof(uint32_t));
+                Utils::SafeRead(ifstream, o.types[k]);
 
                 if (o.types[k] == 1)
                 {
-                    SAFE_READ(ifstream, &o.numpoly[o.nobj], sizeof(uint32_t));
+                    Utils::SafeRead(ifstream, o.numpoly[o.nobj]);
 
                     o.poly[o.nobj] = std::vector<PolygonData>(o.numpoly[o.nobj]);
-                    SAFE_READ(ifstream, o.poly[o.nobj].data(), sizeof(PolygonData) * o.numpoly[o.nobj]);
+                    Utils::SafeRead(ifstream, o.poly[o.nobj].begin(), o.poly[o.nobj].end());
 
                     polygonCount += o.numpoly[o.nobj];
                     ++o.nobj;
@@ -61,18 +53,14 @@ bool PolyBlock::SerializeIn(std::istream &ifstream)
             }
             // n1 == total nb polygons
             if (polygonCount != o.n1)
-            {
-                return false;
-            }
+                throw;
         }
     }
-
-    return true;
 }
 
-void PolyBlock::SerializeOut(std::ostream &ofstream)
+void PolyBlock::SerializeOut(std::ostream &ofstream) const
 {
-    for (uint32_t polyBlockIdx = 0; polyBlockIdx < NUM_POLYGON_BLOCKS; polyBlockIdx++)
+    for (uint32_t polyBlockIdx = 0; polyBlockIdx < cNumPolygonBlocks; polyBlockIdx++)
     {
         ofstream.write((char *) &sz[polyBlockIdx], sizeof(uint32_t));
         if (sz[polyBlockIdx] != 0)
@@ -88,7 +76,7 @@ void PolyBlock::SerializeOut(std::ostream &ofstream)
         if (o.n1 > 0)
         {
             ofstream.write((char *) &o.n2, sizeof(uint32_t));
-            o.nobj = 0;
+            uint32_t nobj = 0;
             for (uint32_t k = 0; k < o.n2; ++k)
             {
                 ofstream.write((char *) &o.types[k], sizeof(uint32_t));
@@ -96,7 +84,7 @@ void PolyBlock::SerializeOut(std::ostream &ofstream)
                 {
                     ofstream.write((char *) &o.numpoly[o.nobj], sizeof(uint32_t));
                     ofstream.write((char *) o.poly[o.nobj].data(), sizeof(PolygonData) * o.numpoly[o.nobj]);
-                    ++o.nobj;
+                    ++nobj;
                 }
             }
         }

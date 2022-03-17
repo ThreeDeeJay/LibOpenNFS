@@ -3,18 +3,17 @@
 #include <map>
 #include <vector>
 
-#include "Common/Enums.h"
-#include "Common/ISerializable.h"
+#include "Common/Utils.h"
 #include "NFS2/TRK/ExtraObjectBlock.h"
 
 namespace LibOpenNFS
 {
     namespace NFS2
     {
-        template <typename Platform>
+        template <Platform platform>
         class ColFile : public IDeserializable
         {
-            ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
+            ExtraObjectBlock<platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
 
             static constexpr uint8_t cHeaderLength = 4;
@@ -25,7 +24,7 @@ namespace LibOpenNFS
             uint32_t size;
             uint32_t nExtraBlocks;
             std::vector<uint32_t> extraBlockOffsets;
-            std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
+            std::vector<ExtraObjectBlock<platform>> extraObjectBlocks;
 
         protected:
             void SerializeIn(std::istream &ifstream) override;

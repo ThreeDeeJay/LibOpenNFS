@@ -1,13 +1,10 @@
-#include <type_traits>
-
 #include "NFS2/TRK/ExtraObjectBlock.h"
-#include "Common/Utils.h"
 
 using namespace LibOpenNFS;
 using namespace LibOpenNFS::NFS2;
 
-template <typename Platform>
-void ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
+template <Platform platform>
+void ExtraObjectBlock<platform>::SerializeIn(std::istream &ifstream)
 {
     // Read the header
     Utils::SafeRead(ifstream, recSize);
@@ -49,7 +46,7 @@ void ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
         nStructures = nRecords;
         for (uint32_t structureIdx = 0; structureIdx < nStructures; ++structureIdx)
         {
-            StructureBlock<Platform> structure;
+            StructureBlock<platform> structure;
             ifstream >> structure;
             structures.push_back(std::move(structure));
         }
@@ -80,19 +77,19 @@ void ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
     // break;
     case 13:
         nVroad = nRecords;
-        if constexpr (std::is_same_v<Platform, PS1>)
+        if constexpr (platform == Platform::PS1)
         {
             ps1VroadData.resize(nVroad);
             Utils::SafeRead(ifstream, ps1VroadData.begin(), ps1VroadData.end());
         }
-        else if constexpr (std::is_same_v<Platform, PC>)
+        else if constexpr (platform == Platform::PC)
         {
             vroadData.resize(nVroad);
             Utils::SafeRead(ifstream, vroadData.begin(), vroadData.end());
         }
         else
         {
-            throw;
+            throw std::runtime_error{"Invalid platform selected"};
         }
         break;
     case 15:
@@ -107,5 +104,5 @@ void ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
     }
 }
 
-template class LibOpenNFS::NFS2::ExtraObjectBlock<PS1>;
-template class LibOpenNFS::NFS2::ExtraObjectBlock<PC>;
+template class LibOpenNFS::NFS2::ExtraObjectBlock<Platform::PS1>;
+template class LibOpenNFS::NFS2::ExtraObjectBlock<Platform::PC>;

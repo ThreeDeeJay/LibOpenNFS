@@ -7,7 +7,7 @@ namespace LibOpenNFS
     namespace NFS2
     {
         template <>
-        void GeoFile<PC>::SerializeIn(std::istream &ifstream)
+        void GeoFile<Platform::PC>::SerializeIn(std::istream &ifstream)
         {
             // std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids)
             //float carScaleFactor     = 2000.f;
@@ -131,7 +131,7 @@ namespace LibOpenNFS
         }
 
         template <>
-        void GeoFile<PS1>::SerializeIn(std::istream &ifstream)
+        void GeoFile<Platform::PS1>::SerializeIn(std::istream &ifstream)
         {
             // std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids)
             /*glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0)));
@@ -383,7 +383,7 @@ namespace LibOpenNFS
             throw;
         }
 
-        template class GeoFile<PS1>;
-        template class GeoFile<PC>;
+        template class GeoFile<Platform::PS1>;
+        template class GeoFile<Platform::PC>;
     }
 }

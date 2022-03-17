@@ -1,12 +1,11 @@
 #include "NFS2/TRK/TrackBlock.h"
-#include "Common/Utils.h"
 
 using namespace LibOpenNFS::NFS2;
 
-template <typename Platform>
-void TrackBlock<Platform>::SerializeIn(std::istream &ifstream)
+template <Platform platform>
+void TrackBlock<platform>::SerializeIn(std::istream &ifstream)
 {
-    std::streampos trackBlockOffset = ifstream.tellg();
+    auto trackBlockOffset{ifstream.tellg()};
 
     // Read Header
     Utils::SafeRead(ifstream, blockSize);
@@ -27,7 +26,7 @@ void TrackBlock<Platform>::SerializeIn(std::istream &ifstream)
 
     // Sanity Checks
     if (blockSize != blockSizeDup)
-        throw std::runtime_error{"Bad Block"};
+        throw std::runtime_error{"Bad TrackBlock"};
 
     // Read 3D Data
     vertexTable.resize(nStickToNextVerts + nHighResVert);
@@ -46,25 +45,26 @@ void TrackBlock<Platform>::SerializeIn(std::istream &ifstream)
     {
         ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
 
-        ExtraObjectBlock<Platform> extraObjectBlock;
+        ExtraObjectBlock<platform> extraObjectBlock;
         ifstream >> extraObjectBlock;
         extraObjectBlocks.push_back(std::move(extraObjectBlock));
+        
         // Map the the block type to the vector index, original ordering is then maintained for output serialisation
         extraObjectBlockMap[(ExtraBlockID) extraObjectBlocks.back().id] = extraBlockIdx;
     }
 }
 
-template <typename Platform>
-ExtraObjectBlock<Platform> TrackBlock<Platform>::GetExtraObjectBlock(ExtraBlockID eBlockType)
+template <Platform platform>
+ExtraObjectBlock<platform> TrackBlock<platform>::GetExtraObjectBlock(ExtraBlockID eBlockType)
 {
     return extraObjectBlocks[extraObjectBlockMap[eBlockType]];
 }
 
-template <typename Platform>
-bool TrackBlock<Platform>::IsBlockPresent(ExtraBlockID eBlockType)
+template <Platform platform>
+bool TrackBlock<platform>::IsBlockPresent(ExtraBlockID eBlockType)
 {
     return extraObjectBlockMap.count(eBlockType);
 }
 
-template class LibOpenNFS::NFS2::TrackBlock<PS1>;
-template class LibOpenNFS::NFS2::TrackBlock<PC>;
+template class LibOpenNFS::NFS2::TrackBlock<Platform::PS1>;
+template class LibOpenNFS::NFS2::TrackBlock<Platform::PC>;

@@ -4,20 +4,20 @@
 #include <vector>
 #include <map>
 
-#include "Common/Enums.h"
-#include "Common/ISerializable.h"
+#include "Common/Utils.h"
 #include "NFS2/Common.h"
+
 #include "NFS2/TRK/ExtraObjectBlock.h"
 
 namespace LibOpenNFS
 {
     namespace NFS2
     {
-        template <typename Platform>
+        template <Platform platform>
         class TrackBlock : public IDeserializable
         {
         public:
-            ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
+            ExtraObjectBlock<platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
 
             // Raw file data
@@ -26,15 +26,15 @@ namespace LibOpenNFS
             uint16_t nExtraBlocks;
             uint16_t unknown;
             uint32_t serialNum;
-            struct VERT_HIGHP clippingRect[4];
+            VertexHighP clippingRect[4];
             uint32_t extraBlockTblOffset;
             uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
             uint16_t nLowResPoly, nMedResPoly, nHighResPoly;
             uint16_t unknownPad[3];
-            std::vector<typename Platform::VERT> vertexTable;
-            std::vector<typename Platform::POLYGONDATA> polygonTable;
+            std::vector<Vertex<platform>> vertexTable;
+            std::vector<PolygonData<platform>> polygonTable;
             std::vector<uint32_t> extraBlockOffsets;
-            std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
+            std::vector<ExtraObjectBlock<platform>> extraObjectBlocks;
 
         protected:
             void SerializeIn(std::istream &ifstream) override;

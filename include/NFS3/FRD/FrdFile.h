@@ -1,39 +1,36 @@
 #pragma once
 
-#include "../../Common/ISerializable.h"
+#include "Common/Utils.h"
 
-#include "TrkBlock.h"
-#include "PolyBlock.h"
-#include "ExtraObjectBlock.h"
-#include "TexBlock.h"
+#include "NFS3/FRD/TrkBlock.h"
+#include "NFS3/FRD/PolyBlock.h"
+#include "NFS3/FRD/ExtraObjectBlock.h"
+#include "NFS3/FRD/TexBlock.h"
 
 namespace LibOpenNFS
 {
     namespace NFS3
     {
-        static const uint8_t HEADER_LENGTH = 28;
+        static constexpr uint8_t cHeaderLength = 28;
 
-        class FrdFile : ISerializable
+        class FrdFile : public ISerializable, public IDeserializable
         {
         public:
-            FrdFile() = default;
-            static bool Load(const std::string &frdPath, FrdFile &frdFile);
-            static void Save(const std::string &frdPath, FrdFile &frdFile);
             static void MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB);
 
             // Raw File data
-            char header[HEADER_LENGTH];
+            char header[cHeaderLength];
             uint32_t nBlocks;
             uint32_t nTextures;
-            NFSVer version;
+            
             std::vector<TrkBlock> trackBlocks;
             std::vector<PolyBlock> polygonBlocks;
             std::vector<ExtraObjectBlock> extraObjectBlocks;
             std::vector<TexBlock> textureBlocks;
 
         private:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+            void SerializeIn(std::istream &ifstream) override;
+            void SerializeOut(std::ostream &ofstream) const override;
         };
     } // namespace NFS3
 } // namespace LibOpenNFS

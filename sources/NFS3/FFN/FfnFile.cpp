@@ -1,37 +1,28 @@
-#include "FfnFile.h"
+#include <cstring>
 
-#include "../../../Util/ImageLoader.h"
+#include "NFS3/FFN/FfnFile.h"
+
+//#include "../../../Util/ImageLoader.h"
 
 using namespace LibOpenNFS::NFS3;
 
-bool FfnFile::Load(const std::string &ffnPath, FfnFile &ffnFile)
+static uint32_t ARGB1555toARGB8888(uint16_t c)
 {
-    LOG(INFO) << "Loading FFN File located at " << ffnPath;
-    std::ifstream ffn{ffnPath, std::ios::binary};
-
-    return ffnFile.SerializeIn(ffn);
+    const uint32_t a = c & 0x8000, r = c & 0x7C00, g = c & 0x03E0, b = c & 0x1F;
+    const uint32_t rgb = (r << 9) | (g << 6) | (b << 3);
+    return (a * 0x1FE00) | rgb | ((rgb >> 5) & 0x070707);
 }
 
-void FfnFile::Save(const std::string &ffnPath, FfnFile &ffnFile)
-{
-    LOG(INFO) << "Saving FFN File to " << ffnPath;
-    std::ofstream ffn{ffnPath, std::ios::binary};
-    ffnFile.SerializeOut(ffn);
-}
-
-bool FfnFile::SerializeIn(std::istream &ifstream)
+void FfnFile::SerializeIn(std::istream &ifstream)
 {
     // Get filesize so can check have parsed all bytes
-    SAFE_READ(ifstream, &header, sizeof(HEADER));
+    Utils::SafeRead(ifstream, header);
 
-    if (memcmp(header.fntfChk, "FNTF", sizeof(header.fntfChk)) != 0)
-    {
-        LOG(WARNING) << "Invalid FFN Header";
-        return false;
-    }
+    if (strncmp(header.fntfChk, "FNTF", sizeof(header.fntfChk)) != 0)
+        throw std::runtime_error{"Invalid FFN Header"};
 
     characters.resize(header.numChars);
-    SAFE_READ(ifstream, characters.data(), sizeof(CHAR_TABLE_ENTRY) * header.numChars);
+    Utils::SafeRead(ifstream, characters.begin(), characters.end());
 
     uint32_t predictedAFontOffset = header.fontMapOffset;
 
@@ -50,28 +41,18 @@ bool FfnFile::SerializeIn(std::istream &ifstream)
         paletteColours[pal_Idx] = 65535;
 
     for (int y = 0; y < header.numChars; y++)
-    {
         for (int x = 0; x < header.version; x++)
-        {
-            SAFE_READ(ifstream, &indices[(x + y * header.version)], sizeof(uint8_t));
-        }
-    }
+            Utils::SafeRead(ifstream, indices[(x + y * header.version)]);
 
     // Rewrite the pixels using the palette data
     for (int y = 0; y < header.numChars; y++)
         for (int x = 0; x < header.version; x++)
         {
-            uint32_t pixel                   = ImageLoader::abgr1555ToARGB8888(paletteColours[indices[(x + y * header.version)]]);
+            uint32_t pixel                   = ARGB1555toARGB8888(paletteColours[indices[(x + y * header.version)]]);
             pixels[(x + y * header.version)] = pixel;
         }
 
     // ImageLoader::SaveImage("C:/Users/Amrik/Desktop/test.bmp", pixels.data(), header.version, header.numChars);
 
     // ASSERT(readBytes == header.fileSize, "Missing " << header.fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
-    return true;
-}
-
-void FfnFile::SerializeOut(std::ostream &ofstream)
-{
-    ASSERT(false, "FFN output serialization is not currently implemented");
 }

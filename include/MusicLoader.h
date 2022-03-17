@@ -9,11 +9,7 @@
 #include <cstdio>
 #include <filesystem>
 
-#include "../Util/Utils.h"
-
-using namespace std;
-
-typedef struct MAPHeader
+struct MAPHeader
 {
     char szID[4];
     uint8_t bUnknown1;
@@ -22,22 +18,22 @@ typedef struct MAPHeader
     uint8_t bRecordSize; // ???
     uint8_t Unknown2[3];
     uint8_t bNumRecords;
-} MAPHeader;
+};
 
-typedef struct MAPSectionDefRecord
+struct MAPSectionDefRecord
 {
     uint8_t bUnknown;
     uint8_t bMagic;
     uint8_t bNextSection;
-} MAPSectionDefRecord;
+};
 
-typedef struct MAPSectionDef
+struct MAPSectionDef
 {
     uint8_t bIndex;
     uint8_t bNumRecords;
     uint8_t szID[2];
     struct MAPSectionDefRecord msdRecords[8];
-} MAPSectionDef;
+};
 
 struct ASFBlockHeader
 {

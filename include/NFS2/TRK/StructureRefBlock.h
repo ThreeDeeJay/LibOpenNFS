@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "Common/ISerializable.h"
+#include "Common/Utils.h"
 #include "NFS2/Common.h"
 
 namespace LibOpenNFS
@@ -18,11 +18,11 @@ namespace LibOpenNFS
             uint8_t recType;
             uint8_t structureRef;
             // Fixed Type (recType == 1)
-            VERT_HIGHP refCoordinates;
+            VertexHighP refCoordinates;
             // Animated Type (recType == 3)
             uint16_t animLength;                 // num of position records
             uint16_t unknown;                    // Potentially time between animation steps?
-            std::vector<ANIM_POS> animationData; // Sequence of positions which animation follows
+            std::vector<AnimPosition> animationData; // Sequence of positions which animation follows
 
         private:
             void SerializeIn(std::istream &ifstream) override;

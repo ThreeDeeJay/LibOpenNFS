@@ -5,7 +5,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-Car NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVer nfsVersion)
+Car NFS2Loader<Platform>::LoadCar(const std::string &carBasePath)
 {
     std::filesystem::path p(carBasePath);
     std::string carName = p.filename().string();
@@ -77,11 +77,11 @@ Car NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVer nfsVers
     GLint textureArrayID = Texture::MakeTextureArray(carTextures, false);
     CarData carData      = _ParseGEOModels(geoFile);
     // carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
-    return std::make_shared<Car>(carData, NFSVer::NFS_2, carName, textureArrayID);
+    return Car(carData, NFSVer::NFS_2, carName, textureArrayID);
 }
 
 template <>
-std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePath, NFSVer nfsVersion)
+Track NFS2Loader<PC>::LoadTrack(const std::string &trackBasePath)
 {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
 
@@ -136,7 +136,7 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
 }
 
 template <>
-std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePath, NFSVer nfsVersion)
+Track NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePath)
 {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
     auto track        = std::make_shared<Track>(Track());

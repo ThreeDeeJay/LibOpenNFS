@@ -10,8 +10,8 @@ template <typename Platform>
 class NFS2Loader
 {
 public:
-    static std::shared_ptr<Car> LoadCar(const std::string &carBasePath, NFSVer nfsVersion);
-    static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath, NFSVer nfsVersion);
+    static Car LoadCar(const std::string &carBasePath);
+    static Track LoadTrack(const std::string &trackBasePath);
 
 private:
     static CarData _ParseGEOModels(const LibOpenNFS::NFS2::GeoFile<Platform> &geoFile);

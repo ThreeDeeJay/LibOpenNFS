@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Common/ISerializable.h"
+#include <vector>
+
+#include "Common/Utils.h"
 #include "NFS3/Common.h"
 
 namespace LibOpenNFS
@@ -72,12 +74,9 @@ namespace LibOpenNFS
             uint32_t leftWall, rightWall;
         };
 
-        class ColFile : ISerializable
+        class ColFile : public IDeserializable
         {
         public:
-            static bool Load(const std::string &colPath, ColFile &colFile);
-            static void Save(const std::string &colPath, ColFile &colFile);
-
             char header[4];                      // Header of file 'COLL'
             uint32_t version;                    // Version number 11
             uint32_t fileLength;                 // File length in bytes
@@ -95,9 +94,8 @@ namespace LibOpenNFS
             std::vector<ColVRoad> vroad;         // Unknown table
             uint32_t *hs_extra = nullptr;        // for the extra HS data in ColVRoad
 
-        private:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+        protected:
+            void SerializeIn(std::istream &ifstream) override;
         };
     } // namespace NFS3
 } // namespace LibOpenNFS

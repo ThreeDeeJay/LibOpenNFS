@@ -1,5 +1,4 @@
 #include "NFS2/COL/ColFile.h"
-#include "Common/Utils.h"
 
 #include <cstring>
 #include <cassert>
@@ -7,18 +6,18 @@
 using namespace LibOpenNFS;
 using namespace LibOpenNFS::NFS2;
 
-template <typename Platform>
-void ColFile<Platform>::SerializeIn(std::istream &ifstream)
+template <Platform platform>
+void ColFile<platform>::SerializeIn(std::istream &ifstream)
 {
     // Check we're in a valid TRK file
     Utils::SafeRead(ifstream, header);
 
     if(strncmp(header, "COLL", sizeof(header)) != 0)
-        throw;
+        throw std::runtime_error{"Invalid Col Header(s)"};
 
     Utils::SafeRead(ifstream, colVersion);
     if (colVersion != 11)
-        throw;
+        throw std::runtime_error{"Invalid Col version"};
 
     Utils::SafeRead(ifstream, size);
     Utils::SafeRead(ifstream, nExtraBlocks);
@@ -30,7 +29,7 @@ void ColFile<Platform>::SerializeIn(std::istream &ifstream)
     {
         ifstream.seekg(16 + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
         
-        ExtraObjectBlock<Platform> extraObjectBlock;
+        ExtraObjectBlock<platform> extraObjectBlock;
         ifstream >> extraObjectBlock;
         
         extraObjectBlocks.push_back(std::move(extraObjectBlock));
@@ -40,17 +39,17 @@ void ColFile<Platform>::SerializeIn(std::istream &ifstream)
     }
 }
 
-template <typename Platform>
-ExtraObjectBlock<Platform> ColFile<Platform>::GetExtraObjectBlock(ExtraBlockID eBlockType)
+template <Platform platform>
+ExtraObjectBlock<platform> ColFile<platform>::GetExtraObjectBlock(ExtraBlockID eBlockType)
 {
     return extraObjectBlocks[extraObjectBlockMap[eBlockType]];
 }
 
-template <typename Platform>
-bool ColFile<Platform>::IsBlockPresent(ExtraBlockID eBlockType)
+template <Platform platform>
+bool ColFile<platform>::IsBlockPresent(ExtraBlockID eBlockType)
 {
     return extraObjectBlockMap.count(eBlockType);
 }
 
-template class LibOpenNFS::NFS2::ColFile<PS1>;
-template class LibOpenNFS::NFS2::ColFile<PC>;
+template class LibOpenNFS::NFS2::ColFile<Platform::PS1>;
+template class LibOpenNFS::NFS2::ColFile<Platform::PC>;

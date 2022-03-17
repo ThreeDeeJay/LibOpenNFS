@@ -1,4 +1,6 @@
-#include "Common/ISerializable.h"
+#include "Common/Utils.h"
+
+using namespace LibOpenNFS::Utils;
 
 std::ostream& operator<<(std::ostream& os, const ISerializable& ref)
 {

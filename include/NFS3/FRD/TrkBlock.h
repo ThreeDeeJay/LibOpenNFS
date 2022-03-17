@@ -1,6 +1,10 @@
 #pragma once
 
-#include "../../Common/ISerializable.h"
+#include <cstdint>
+#include <vector>
+#include <glm/glm.hpp>
+
+#include "Common/Utils.h"
 
 namespace LibOpenNFS
 {
@@ -59,13 +63,9 @@ namespace LibOpenNFS
             uint8_t unknown[20];
         };
 
-        class TrkBlock : public ISerializable
+        class TrkBlock : public ISerializable, public IDeserializable
         {
         public:
-            TrkBlock() = default;
-            explicit TrkBlock(std::istream &frd);
-            void SerializeOut(std::ostream &frd) override;
-
             glm::vec3 ptCentre;
             glm::vec3 ptBounding[4];
             uint32_t nVertices;                           // Total num verties in block
@@ -87,7 +87,8 @@ namespace LibOpenNFS
             uint32_t hs_neighbors[8];
 
         protected:
-            bool SerializeIn(std::istream &frd) override;
+            void SerializeIn(std::istream &frd) override;
+            void SerializeOut(std::ostream &frd) const override;
         };
     } // namespace NFS3
 } // namespace LibOpenNFS

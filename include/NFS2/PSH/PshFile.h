@@ -3,13 +3,13 @@
 #include <cstdint>
 #include <vector>
 
-#include "Common/ISerializable.h"
+#include "Common/Utils.h"
 
 namespace LibOpenNFS
 {
     namespace NFS2
     {
-        struct HEADER
+        struct Header
         {
             char header[4];        //  "SHPP"
             uint32_t length;       // Inclusive Length of the PSH file
@@ -17,13 +17,13 @@ namespace LibOpenNFS
             char chk[4];           // "GIMX"
         };
 
-        struct DIR_ENTRY
+        struct DirEntry
         {
             char imageName[4];
             uint32_t imageOffset; // Offset to start of the image, len implied by difference between offsets to next
         };
 
-        struct IMAGE_HEADER
+        struct ImageHeader
         {
             uint8_t imageType; // Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0 The bottom 2 bits of the image type byte specify
             // the bit depth of the image: 0 - 4-bit indexed colour 2 - 16-bit direct colour 3 - 24-bit direct colour
@@ -33,7 +33,7 @@ namespace LibOpenNFS
             uint16_t unknown2[4];
         };
 
-        struct PALETTE_HEADER
+        struct PaletteHeader
         {
             uint32_t unknown;
             uint16_t paletteWidth;    // Always 16
@@ -47,8 +47,8 @@ namespace LibOpenNFS
         public:
             void Extract(const std::string &outputPath);
 
-            HEADER header;
-            std::vector<DIR_ENTRY> directoryEntries;
+            Header header;
+            std::vector<DirEntry> directoryEntries;
 
         protected:
             void SerializeIn(std::istream &ifstream) override;

@@ -1,16 +1,18 @@
 #pragma once
 
+#include <cstdint>
 #include <array>
+#include <vector>
 
-#include "../../Common/ISerializable.h"
-#include "../Common.h"
+#include "Common/Utils.h"
+#include "NFS3/Common.h"
 
 namespace LibOpenNFS
 {
     namespace NFS3
     {
-        const uint8_t NUM_POLYGON_BLOCKS = 7;
-        const uint8_t NUM_POLYOBJ_CHUNKS = 4;
+        static constexpr uint8_t cNumPolygonBlocks = 7;
+        static constexpr uint8_t cNumPolyObjChunks = 4;
 
         struct ObjectPolyBlock // a POLYOBJ chunk
         {
@@ -22,25 +24,22 @@ namespace LibOpenNFS
             std::vector<std::vector<PolygonData>> poly; // the polygons themselves
         };
 
-        class PolyBlock : private ISerializable
+        class PolyBlock : public ISerializable, public IDeserializable
         {
         public:
-            PolyBlock() = default;
-            explicit PolyBlock(std::istream &frd, uint32_t nTrackBlockPolys);
-            void SerializeOut(std::ostream &ofstream) override;
-
             uint32_t m_nTrackBlockPolys;
 
             // 7 blocks == low res / 0 / med. res / 0 / high res / 0 / ??central
-            std::array<uint32_t, NUM_POLYGON_BLOCKS> sz{};
-            std::array<uint32_t, NUM_POLYGON_BLOCKS> szdup{};
-            std::array<std::vector<PolygonData>, NUM_POLYGON_BLOCKS> poly{};
-            std::array<ObjectPolyBlock, NUM_POLYOBJ_CHUNKS> obj{}; // the POLYOBJ chunks
+            std::array<uint32_t, cNumPolygonBlocks> sz{};
+            std::array<uint32_t, cNumPolygonBlocks> szdup{};
+            std::array<std::vector<PolygonData>, cNumPolygonBlocks> poly{};
+            std::array<ObjectPolyBlock, cNumPolyObjChunks> obj{}; // the POLYOBJ chunks
             // if not present, then all objects in the chunk are XOBJs
             // the 1st chunk is described anyway in the TRKBLOCK
 
         private:
-            bool SerializeIn(std::istream &ifstream) override;
+            void SerializeIn(std::istream &ifstream) override;
+            void SerializeOut(std::ostream &ofstream) const override;
         };
 
     } // namespace NFS3

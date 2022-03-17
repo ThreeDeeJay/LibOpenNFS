@@ -2,7 +2,6 @@
 #include <cassert>
 
 #include "NFS2/PSH/PshFile.h"
-#include "Common/Utils.h"
 
 // TODO: Need to perform proper deserialisation in this file, and then use a helper in ImageLoader that calls into this class
 // #include "../../../Util/ImageLoader.h"
@@ -18,10 +17,7 @@ void PshFile::SerializeIn(std::istream &ifstream)
 
     // Header should contain TRAC
     if (strncmp(header.header, "SHPP", sizeof(header.header)) != 0 && strncmp(header.chk, "GIMX", sizeof(header.chk)) != 0)
-    {
-        throw;
-        // LOG(WARNING) << "Invalid PSH Header(s)";
-    }
+        throw std::runtime_error{"Invalid PSH Header(s)"};
 
     // Get the offsets to each image in the PSH
     directoryEntries.resize(header.nDirectories);

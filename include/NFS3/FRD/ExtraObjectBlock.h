@@ -1,7 +1,10 @@
 #pragma once
 
-#include "../../Common/ISerializable.h"
-#include "../Common.h"
+#include <cstdint>
+#include <vector>
+
+#include "Common/Utils.h"
+#include "NFS3/Common.h"
 
 namespace LibOpenNFS
 {
@@ -29,20 +32,15 @@ namespace LibOpenNFS
             std::vector<PolygonData> polyData;
         };
 
-        class ExtraObjectBlock : ISerializable
+        class ExtraObjectBlock : public ISerializable, public IDeserializable
         {
         public:
-            ExtraObjectBlock() = default;
-
-            explicit ExtraObjectBlock(std::istream &frd);
-
-            void SerializeOut(std::ostream &ofstream) override;
-
             uint32_t nobj = 0;
             std::vector<ExtraObjectData> obj;
 
         private:
-            bool SerializeIn(std::istream &ifstream) override;
+            void SerializeIn(std::istream &ifstream) override;
+            void SerializeOut(std::ostream &ofstream) const override;
         };
     } // namespace NFS3
 } // namespace LibOpenNFS

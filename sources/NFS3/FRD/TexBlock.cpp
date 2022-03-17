@@ -1,26 +1,19 @@
-#include "TexBlock.h"
+#include "NFS3/FRD/TexBlock.h"
 
 using namespace LibOpenNFS::NFS3;
 
-TexBlock::TexBlock(std::istream &frd)
+void TexBlock::SerializeIn(std::istream &ifstream)
 {
-    ASSERT(this->SerializeIn(frd), "Failed to serialize TextureBlock from file stream");
+    Utils::SafeRead(ifstream, width);
+    Utils::SafeRead(ifstream, height);
+    Utils::SafeRead(ifstream, unknown1);
+    Utils::SafeRead(ifstream, corners);
+    Utils::SafeRead(ifstream, unknown2);
+    Utils::SafeRead(ifstream, isLane);
+    Utils::SafeRead(ifstream, qfsIndex);
 }
 
-bool TexBlock::SerializeIn(std::istream &ifstream)
-{
-    SAFE_READ(ifstream, &width, (sizeof(uint16_t)));
-    SAFE_READ(ifstream, &height, (sizeof(uint16_t)));
-    SAFE_READ(ifstream, &unknown1, (sizeof(uint32_t)));
-    SAFE_READ(ifstream, &corners, sizeof(float) * 8);
-    SAFE_READ(ifstream, &unknown2, (sizeof(uint32_t)));
-    SAFE_READ(ifstream, &isLane, (sizeof(bool)));
-    SAFE_READ(ifstream, &qfsIndex, (sizeof(uint16_t)));
-
-    return true;
-}
-
-void TexBlock::SerializeOut(std::ostream &ofstream)
+void TexBlock::SerializeOut(std::ostream &ofstream) const
 {
     // TODO: Do I need to align here?
     ofstream.write((char *) &width, sizeof(uint16_t));

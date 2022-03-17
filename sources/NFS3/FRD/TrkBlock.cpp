@@ -1,81 +1,72 @@
-#include "TrkBlock.h"
+#include "NFS3/FRD/TrkBlock.h"
 
 using namespace LibOpenNFS::NFS3;
 
-TrkBlock::TrkBlock(std::istream &frd)
+void TrkBlock::SerializeIn(std::istream &frd)
 {
-    ASSERT(this->SerializeIn(frd), "Failed to serialize TrkBlock from file stream");
-}
-
-bool TrkBlock::SerializeIn(std::istream &frd)
-{
-    SAFE_READ(frd, &ptCentre, sizeof(glm::vec3));
-    SAFE_READ(frd, &ptBounding, sizeof(glm::vec3) * 4);
-    SAFE_READ(frd, &nVertices, sizeof(uint32_t));
-    SAFE_READ(frd, &nHiResVert, sizeof(uint32_t));
-    SAFE_READ(frd, &nLoResVert, sizeof(uint32_t));
-    SAFE_READ(frd, &nMedResVert, sizeof(uint32_t));
-    SAFE_READ(frd, &nVerticesDup, sizeof(uint32_t));
-    SAFE_READ(frd, &nObjectVert, sizeof(uint32_t));
+    Utils::SafeRead(frd, ptCentre);
+    Utils::SafeRead(frd, ptBounding);
+    Utils::SafeRead(frd, nVertices);
+    Utils::SafeRead(frd, nHiResVert);
+    Utils::SafeRead(frd, nLoResVert);
+    Utils::SafeRead(frd, nMedResVert);
+    Utils::SafeRead(frd, nVerticesDup);
+    Utils::SafeRead(frd, nObjectVert);
 
     if (nVertices == 0)
-    {
-        return false;
-    }
+        throw;
 
     // Read Vertices
     vert.resize(nVertices);
-    SAFE_READ(frd, vert.data(), sizeof(glm::vec3) * nVertices);
+    Utils::SafeRead(frd, vert.begin(), vert.end());
 
     // Read Vertices
     vertShading.resize(nVertices);
-    SAFE_READ(frd, vertShading.data(), sizeof(uint32_t) * nVertices);
+    Utils::SafeRead(frd, vertShading.begin(), vertShading.end());
 
     // Read neighbouring block data
-    SAFE_READ(frd, nbdData, 4 * 0x12c);
+    Utils::SafeRead(frd, nbdData);
 
     // Read trackblock metadata
-    SAFE_READ(frd, &nStartPos, sizeof(uint32_t));
-    SAFE_READ(frd, &nPositions, sizeof(uint32_t));
-    SAFE_READ(frd, &nPolygons, sizeof(uint32_t));
-    SAFE_READ(frd, &nVRoad, sizeof(uint32_t));
-    SAFE_READ(frd, &nXobj, sizeof(uint32_t));
-    SAFE_READ(frd, &nPolyobj, sizeof(uint32_t));
-    SAFE_READ(frd, &nSoundsrc, sizeof(uint32_t));
-    SAFE_READ(frd, &nLightsrc, sizeof(uint32_t));
+    Utils::SafeRead(frd, nStartPos);
+    Utils::SafeRead(frd, nPositions);
+    Utils::SafeRead(frd, nPolygons);
+    Utils::SafeRead(frd, nVRoad);
+    Utils::SafeRead(frd, nXobj);
+    Utils::SafeRead(frd, nPolyobj);
+    Utils::SafeRead(frd, nSoundsrc);
+    Utils::SafeRead(frd, nLightsrc);
 
     // Read track position data
     posData.resize(nPositions);
-    SAFE_READ(frd, posData.data(), sizeof(PositionData) * nPositions);
+    Utils::SafeRead(frd, posData.begin(), posData.end());
 
     // Read virtual road polygons
     polyData.resize(nPolygons);
-    SAFE_READ(frd, polyData.data(), sizeof(PolyVRoadData) * nPolygons);
+    Utils::SafeRead(frd, polyData.begin(), polyData.end());
 
     // Read virtual road spline data
     vroadData.resize(nVRoad);
-    SAFE_READ(frd, vroadData.data(), sizeof(VRoadData) * nVRoad);
+    Utils::SafeRead(frd, vroadData.begin(), vroadData.end());
 
     // Read Extra object references
     xobj.resize(nXobj);
-    SAFE_READ(frd, xobj.data(), sizeof(RefExtraObject) * nXobj);
+    Utils::SafeRead(frd, xobj.begin(), xobj.end());
 
     // ?? Read unknown
     polyObj.resize(nPolyobj);
-    SAFE_READ(frd, polyObj.data(), sizeof(PolyObject) * nPolyobj);
+    Utils::SafeRead(frd, polyObj.begin(), polyObj.end());
     // nPolyobj = 0;
 
     // Get the sound and light sources
     soundsrc.resize(nSoundsrc);
-    SAFE_READ(frd, soundsrc.data(), sizeof(SoundSource) * nSoundsrc);
+    Utils::SafeRead(frd, soundsrc.begin(), soundsrc.end());
 
     lightsrc.resize(nLightsrc);
-    SAFE_READ(frd, lightsrc.data(), sizeof(LightSource) * nLightsrc);
-
-    return true;
+    Utils::SafeRead(frd, lightsrc.begin(), lightsrc.end());
 }
 
-void TrkBlock::SerializeOut(std::ostream &frd)
+void TrkBlock::SerializeOut(std::ostream &frd) const
 {
     frd.write((char *) &ptCentre, sizeof(glm::vec3));
     frd.write((char *) &ptBounding, sizeof(glm::vec3) * 4);

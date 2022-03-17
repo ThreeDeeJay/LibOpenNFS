@@ -1,73 +1,50 @@
-#include "FceFile.h"
+#include "NFS3/FCE/FceFile.h"
 
 using namespace LibOpenNFS::NFS3;
 
-bool FceFile::Load(const std::string &fcePath, FceFile &fceFile)
+void FceFile::SerializeIn(std::istream &ifstream)
 {
-    LOG(INFO) << "Loading FCE File located at " << fcePath;
-    std::ifstream fce{fcePath, std::ios::binary};
-
-    return fceFile.SerializeIn(fce);
-}
-
-void FceFile::Save(const std::string &fcePath, FceFile &fceFile)
-{
-    LOG(INFO) << "Saving FCE File to " << fcePath;
-    std::ofstream fce{fcePath, std::ios::binary};
-    fceFile.SerializeOut(fce);
-}
-
-bool FceFile::SerializeIn(std::istream &ifstream)
-{
-    SAFE_READ(ifstream, &unknown, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nTriangles, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nVertices, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nArts, sizeof(uint32_t));
-    SAFE_READ(ifstream, &vertTblOffset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &normTblOffset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &triTblOffset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &reserve1Offset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &reserve2Offset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &reserve3Offset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &modelHalfSize, sizeof(glm::vec3));
-    SAFE_READ(ifstream, &nDummies, sizeof(uint32_t));
-    SAFE_READ(ifstream, &dummyCoords, sizeof(glm::vec3) * 16);
-    SAFE_READ(ifstream, &nParts, sizeof(uint32_t));
-    SAFE_READ(ifstream, &partCoords, sizeof(glm::vec3) * 64);
-    SAFE_READ(ifstream, &partFirstVertIndices, sizeof(uint32_t) * 64);
-    SAFE_READ(ifstream, &partNumVertices, sizeof(uint32_t) * 64);
-    SAFE_READ(ifstream, &partFirstTriIndices, sizeof(uint32_t) * 64);
-    SAFE_READ(ifstream, &partNumTriangles, sizeof(uint32_t) * 64);
-    SAFE_READ(ifstream, &nPriColours, sizeof(uint32_t));
-    SAFE_READ(ifstream, &primaryColours, sizeof(Colour) * 16);
-    SAFE_READ(ifstream, &nSecColours, sizeof(uint32_t));
-    SAFE_READ(ifstream, &secondaryColours, sizeof(Colour) * 16);
-    SAFE_READ(ifstream, &dummyNames, sizeof(char) * 16 * 64);
-    SAFE_READ(ifstream, &partNames, sizeof(char) * 64 * 64);
-    SAFE_READ(ifstream, &unknownTable, sizeof(uint32_t) * 64);
+    Utils::SafeRead(ifstream, unknown);
+    Utils::SafeRead(ifstream, nTriangles);
+    Utils::SafeRead(ifstream, nVertices);
+    Utils::SafeRead(ifstream, nArts);
+    Utils::SafeRead(ifstream, vertTblOffset);
+    Utils::SafeRead(ifstream, normTblOffset);
+    Utils::SafeRead(ifstream, triTblOffset);
+    Utils::SafeRead(ifstream, reserve1Offset);
+    Utils::SafeRead(ifstream, reserve2Offset);
+    Utils::SafeRead(ifstream, reserve3Offset);
+    Utils::SafeRead(ifstream, modelHalfSize);
+    Utils::SafeRead(ifstream, nDummies);
+    Utils::SafeRead(ifstream, dummyCoords);
+    Utils::SafeRead(ifstream, nParts);
+    Utils::SafeRead(ifstream, partCoords);
+    Utils::SafeRead(ifstream, partFirstVertIndices);
+    Utils::SafeRead(ifstream, partNumVertices);
+    Utils::SafeRead(ifstream, partFirstTriIndices);
+    Utils::SafeRead(ifstream, partNumTriangles);
+    Utils::SafeRead(ifstream, nPriColours);
+    Utils::SafeRead(ifstream, primaryColours);
+    Utils::SafeRead(ifstream, nSecColours);
+    Utils::SafeRead(ifstream, secondaryColours);
+    Utils::SafeRead(ifstream, dummyNames);
+    Utils::SafeRead(ifstream, partNames);
+    Utils::SafeRead(ifstream, unknownTable);
 
     carParts.resize(nParts);
 
     for (uint32_t partIdx = 0; partIdx < nParts; ++partIdx)
     {
         carParts[partIdx].vertices.resize(partNumVertices[partIdx]);
-        carParts[partIdx].normals.resize(partNumVertices[partIdx]);
-        carParts[partIdx].triangles.resize(partNumTriangles[partIdx]);
-
         ifstream.seekg(0x1F04 + vertTblOffset + (partFirstVertIndices[partIdx] * sizeof(glm::vec3)), std::ios_base::beg);
-        SAFE_READ(ifstream, carParts[partIdx].vertices.data(), partNumVertices[partIdx] * sizeof(glm::vec3));
+        Utils::SafeRead(ifstream, carParts[partIdx].vertices.begin(), carParts[partIdx].vertices.end());
 
+        carParts[partIdx].normals.resize(partNumVertices[partIdx]);
         ifstream.seekg(0x1F04 + normTblOffset + (partFirstVertIndices[partIdx] * sizeof(glm::vec3)), std::ios_base::beg);
-        ifstream.read((char *) carParts[partIdx].normals.data(), partNumVertices[partIdx] * sizeof(glm::vec3));
+        Utils::SafeRead(ifstream, carParts[partIdx].normals.begin(), carParts[partIdx].normals.end());
 
+        carParts[partIdx].triangles.resize(partNumTriangles[partIdx]);
         ifstream.seekg(0x1F04 + triTblOffset + (partFirstTriIndices[partIdx] * sizeof(Triangle)), std::ios_base::beg);
-        ifstream.read((char *) carParts[partIdx].triangles.data(), partNumTriangles[partIdx] * sizeof(Triangle));
+        Utils::SafeRead(ifstream, carParts[partIdx].normals.begin(), carParts[partIdx].normals.end());
     }
-
-    return true;
-}
-
-void FceFile::SerializeOut(std::ostream &ofstream)
-{
-    ASSERT(false, "FCE output serialization is not currently implemented");
 }

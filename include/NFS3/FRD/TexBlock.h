@@ -1,18 +1,14 @@
 #pragma once
 
-#include "../../Common/ISerializable.h"
+#include "Common/Utils.h"
 
 namespace LibOpenNFS
 {
     namespace NFS3
     {
-        class TexBlock : public ISerializable
+        class TexBlock : public ISerializable, public IDeserializable
         {
         public:
-            TexBlock() = default;
-            explicit TexBlock(std::istream &frd);
-            void SerializeOut(std::ostream &ifstream) override;
-
             uint16_t width, height;
             uint32_t unknown1; // Blending related, hometown covered bridges godrays `
             float corners[8];  // 4x planar coordinates == tiling?
@@ -21,7 +17,8 @@ namespace LibOpenNFS
             uint16_t qfsIndex; // index in QFS file
 
         private:
-            bool SerializeIn(std::istream &ofstream) override;
+            void SerializeIn(std::istream &ifstream) override;
+            void SerializeOut(std::ostream &ofstream) const override;
         };
     } // namespace NFS3
 } // namespace LibOpenNFS

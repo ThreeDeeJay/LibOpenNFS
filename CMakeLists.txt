@@ -15,7 +15,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources)
 
 set(NFS2_SOURCES 
-        ${SOURCE_DIR}/Common/ISerializable.cpp  
+        ${SOURCE_DIR}/Common/Utils.cpp  
         ${SOURCE_DIR}/NFS2/COL/ColFile.cpp
         ${SOURCE_DIR}/NFS2/GEO/GeoFile.cpp
         ${SOURCE_DIR}/NFS2/PSH/PshFile.cpp
@@ -42,4 +42,4 @@ add_library(${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
 add_executable(${PROJECT_NAME} main.cpp $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
 target_include_directories(${PROJECT_NAME}
     PUBLIC ${CMAKE_SOURCE_DIR}/include
-    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm/glm)
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm)

@@ -5,7 +5,7 @@
 
 int main()
 {
-    LibOpenNFS::NFS2::ColFile<LibOpenNFS::NFS2::PC> a{"TR00.COL"};
+    LibOpenNFS::NFS2::ColFile<LibOpenNFS::NFS2::Platform::PC> a;
 
     std::cout << "asd";
 }
