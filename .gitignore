@@ -1,8 +1,6 @@
-# CLion
-.idea/
-
 # CMake
-cmake-build-debug/
+[Bb]uild/
+[Cc]make-build-debug/
+[Cc]cmake-build-release/
 
-
-
+.vscode
