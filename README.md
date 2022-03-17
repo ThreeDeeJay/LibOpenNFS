@@ -25,16 +25,6 @@ Below is a table better describing the current level of asset load into LibOpenN
 
 \*\*[NFS5 Track formats](https://github.com/OpenNFS/OpenNFS/issues/29) have been reverse engineered, but a stable parser has not yet been written.
 
-## Planned Features
-
-  * An actual implementation of gameplay that replicates the original titles
-  * AI generated through neuroevolution for both the police and racers
-  * Custom(izable), modular menus built from moddable configuration files
-  * Automated import of game assets from CD, ISO or provided URLs
-  * A track editor and automated converter between classic NFS titles, utlilising LibOpenNFS
-  * Free Roam of an open world amalgamation of all classic NFS tracks
-  * Multiplayer!
-
 ## Releases:
 
 OpenNFS does not bundle any EA intellectual property. A copy of the original games must be provided to OpenNFS in order to function, instructions for this are available on the release page.
