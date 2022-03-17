@@ -1,50 +1,34 @@
+#include <cstring>
+#include <cassert>
+
 #include "NFS2/PSH/PshFile.h"
+#include "Common/Utils.h"
 
 // TODO: Need to perform proper deserialisation in this file, and then use a helper in ImageLoader that calls into this class
 // #include "../../../Util/ImageLoader.h"
 
 using namespace LibOpenNFS::NFS2;
 
-bool PshFile::Load(const std::string &pshPath, PshFile &pshFile)
-{
-    LOG(INFO) << "Loading PSH File located at " << pshPath;
-    std::ifstream psh(pshPath, std::ios::in | std::ios::binary);
-
-    bool loadStatus = pshFile.SerializeIn(psh);
-    psh.close();
-
-    return loadStatus;
-}
-
-void PshFile::Save(const std::string &pshPath, PshFile &pshFile)
-{
-    LOG(INFO) << "Saving PSH File to " << pshPath;
-    std::ofstream psh(pshPath, std::ios::out | std::ios::binary);
-    pshFile.SerializeOut(psh);
-}
-
-bool PshFile::SerializeIn(std::istream &ifstream)
+void PshFile::SerializeIn(std::istream &ifstream)
 {
     // Check we're in a valid TRK file
-    SAFE_READ(ifstream, &header, sizeof(HEADER));
+    Utils::SafeRead(ifstream, header);
 
-    LOG(INFO) << header.nDirectories << " images inside PSH";
+    // LOG(INFO) << header.nDirectories << " images inside PSH";
 
     // Header should contain TRAC
-    if (memcmp(header.header, "SHPP", sizeof(header.header)) != 0 && memcmp(header.chk, "GIMX", sizeof(header.chk)) != 0)
+    if (strncmp(header.header, "SHPP", sizeof(header.header)) != 0 && strncmp(header.chk, "GIMX", sizeof(header.chk)) != 0)
     {
-        LOG(WARNING) << "Invalid PSH Header(s)";
-        return false;
+        throw;
+        // LOG(WARNING) << "Invalid PSH Header(s)";
     }
 
     // Get the offsets to each image in the PSH
     directoryEntries.resize(header.nDirectories);
-    SAFE_READ(ifstream, directoryEntries.data(), header.nDirectories * sizeof(DIR_ENTRY));
-
-    return true;
+    Utils::SafeRead(ifstream, directoryEntries.begin(), directoryEntries.end());
 }
 
-bool PshFile::Extract(const std::string &outputPath, PshFile &pshFile)
+void PshFile::Extract(const std::string &outputPath)
 {
     /* LOG(INFO) << "Extracting PSH file to " << outputPath;
      std::ifstream psh(pshPath, std::ios::in | std::ios::binary);
@@ -208,10 +192,5 @@ bool PshFile::Extract(const std::string &outputPath, PshFile &pshFile)
          delete[] pixels;
      }
  */
-    return true;
-}
-
-void PshFile::SerializeOut(std::ostream &ofstream)
-{
-    ASSERT(false, "GEO output serialization is not currently implemented");
+    throw;
 }

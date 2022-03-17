@@ -42,21 +42,16 @@ namespace LibOpenNFS
             uint16_t unknown2[3];     // [0] always 0 [1] always 0 [2] often 240, sometimes 0
         };
 
-        class PshFile : ISerializable
+        class PshFile : public IDeserializable
         {
         public:
-            PshFile() = default;
-
-            static bool Load(const std::string &pshPath, PshFile &pshFile);
-            static void Save(const std::string &pshPath, PshFile &pshFile);
-            static bool Extract(const std::string &outputPath, PshFile &pshFile);
+            void Extract(const std::string &outputPath);
 
             HEADER header;
             std::vector<DIR_ENTRY> directoryEntries;
 
-        private:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+        protected:
+            void SerializeIn(std::istream &ifstream) override;
         };
     } // namespace NFS2
 } // namespace LibOpenNFS

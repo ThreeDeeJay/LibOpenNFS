@@ -15,28 +15,31 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/sources)
 
 set(NFS2_SOURCES 
+        ${SOURCE_DIR}/Common/ISerializable.cpp  
         ${SOURCE_DIR}/NFS2/COL/ColFile.cpp
-       #${SOURCE_DIR}/NFS2/GEO/GeoFile.cpp
-       # ${SOURCE_DIR}/NFS2/PSH/PshFile.cpp
+        ${SOURCE_DIR}/NFS2/GEO/GeoFile.cpp
+        ${SOURCE_DIR}/NFS2/PSH/PshFile.cpp
         ${SOURCE_DIR}/NFS2/TRK/ExtraObjectBlock.cpp
         ${SOURCE_DIR}/NFS2/TRK/StructureBlock.cpp
         ${SOURCE_DIR}/NFS2/TRK/StructureRefBlock.cpp
-       # ${SOURCE_DIR}/NFS2/TRK/SuperBlock.cpp
-      #  ${SOURCE_DIR}/NFS2/TRK/TrackBlock.cpp
-      #  ${SOURCE_DIR}/NFS2/TRK/TrkFile.cpp
-      #  ${SOURCE_DIR}/NFS2/Loader.cpp
+        ${SOURCE_DIR}/NFS2/TRK/SuperBlock.cpp
+        ${SOURCE_DIR}/NFS2/TRK/TrackBlock.cpp
+        ${SOURCE_DIR}/NFS2/TRK/TrkFile.cpp
+        #${SOURCE_DIR}/NFS2/Loader.cpp
 )
 
-add_library(${PROJECT_NAME} OBJECT ${NFS2_SOURCES})
+add_library(${PROJECT_NAME}_obj OBJECT ${NFS2_SOURCES})
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_property(TARGET ${PROJECT_NAME}_obj PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(${PROJECT_NAME}_obj
+    PUBLIC ${CMAKE_SOURCE_DIR}/include
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm/glm)
 
-add_library(${PROJECT_NAME}_shared SHARED $<TARGET_OBJECTS:${PROJECT_NAME}>)
-add_library(${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}>)
+add_library(${PROJECT_NAME}_shared SHARED $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
+add_library(${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
 
-
-add_executable(${PROJECT_NAME}_exe main.cpp)
-target_link_libraries(${PROJECT_NAME}_exe PUBLIC ${PROJECT_NAME}_static)
-target_include_directories(${PROJECT_NAME}_exe PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_executable(${PROJECT_NAME} main.cpp $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
+target_include_directories(${PROJECT_NAME}
+    PUBLIC ${CMAKE_SOURCE_DIR}/include
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm/glm)

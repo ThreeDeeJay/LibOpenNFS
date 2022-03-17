@@ -8,33 +8,17 @@ using namespace LibOpenNFS;
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-ColFile<Platform>::ColFile(const std::string &colPath)
-{
-    std::ifstream col{colPath, std::ios::binary};
-
-    SerializeIn(col);
-}
-
-template <typename Platform>
-void ColFile<Platform>::Save(const std::string &colPath)
-{
-    std::ofstream col{colPath, std::ios::binary};
-    
-    SerializeOut(col);
-}
-
-template <typename Platform>
-bool ColFile<Platform>::SerializeIn(std::istream &ifstream)
+void ColFile<Platform>::SerializeIn(std::istream &ifstream)
 {
     // Check we're in a valid TRK file
     Utils::SafeRead(ifstream, header);
 
     if(strncmp(header, "COLL", sizeof(header)) != 0)
-        return false;
+        throw;
 
     Utils::SafeRead(ifstream, colVersion);
     if (colVersion != 11)
-        return false;
+        throw;
 
     Utils::SafeRead(ifstream, size);
     Utils::SafeRead(ifstream, nExtraBlocks);
@@ -45,19 +29,15 @@ bool ColFile<Platform>::SerializeIn(std::istream &ifstream)
     for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
         ifstream.seekg(16 + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
-        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
+        
+        ExtraObjectBlock<Platform> extraObjectBlock;
+        ifstream >> extraObjectBlock;
+        
+        extraObjectBlocks.push_back(std::move(extraObjectBlock));
 
         // Map the the block type to the vector index, gross, original ordering is then maintained for output serialisation
         extraObjectBlockMap[static_cast<ExtraBlockID>(extraObjectBlocks.back().id)] = extraBlockIdx;
     }
-
-    return true;
-}
-
-template <typename Platform>
-void ColFile<Platform>::SerializeOut(std::ostream &ofstream)
-{
-    assert("COL output serialization is not currently implemented" == nullptr);
 }
 
 template <typename Platform>

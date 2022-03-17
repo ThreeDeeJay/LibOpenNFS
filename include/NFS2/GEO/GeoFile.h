@@ -8,15 +8,10 @@ namespace LibOpenNFS
     namespace NFS2
     {
         template <typename Platform>
-        class GeoFile : ISerializable
+        class GeoFile : public IDeserializable
         {
-        public:
-            static bool Load(const std::string &geoPath, GeoFile &geoFile);
-            static void Save(const std::string &geoPath, GeoFile &geoFile);
-
-        private:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+        protected:
+            void SerializeIn(std::istream &ifstream) override;
         };
     } // namespace NFS2
 } // namespace LibOpenNFS

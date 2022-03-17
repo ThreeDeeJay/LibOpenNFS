@@ -3,12 +3,7 @@
 
 using namespace LibOpenNFS::NFS2;
 
-StructureRefBlock::StructureRefBlock(std::istream &trk)
-{
-    assert(this->SerializeIn(trk) && "Failed to serialize StructureRefBlock from file stream");
-}
-
-bool StructureRefBlock::SerializeIn(std::istream &ifstream)
+void StructureRefBlock::SerializeIn(std::istream &ifstream)
 {
     std::streamoff padCheck = ifstream.tellg();
 
@@ -37,15 +32,8 @@ bool StructureRefBlock::SerializeIn(std::istream &ifstream)
     else
     {
         //LOG(DEBUG) << "Unknown Structure Reference type: " << (int) recType << " Size: " << (int) recSize << " StructRef: " << (int) structureRef;
-        return true;
+        return;
     }
 
     ifstream.seekg(recSize - (ifstream.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
-
-    return true;
-}
-
-void StructureRefBlock::SerializeOut(std::ostream &ofstream)
-{
-    assert(false && "StructureRefBlock output serialization is not currently implemented");
 }

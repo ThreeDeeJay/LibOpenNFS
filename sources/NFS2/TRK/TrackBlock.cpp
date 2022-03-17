@@ -1,70 +1,57 @@
 #include "NFS2/TRK/TrackBlock.h"
+#include "Common/Utils.h"
 
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-TrackBlock<Platform>::TrackBlock(std::istream &trk, NFSVer version)
-{
-    this->version = version;
-    ASSERT(this->SerializeIn(trk), "Failed to serialize TrackBlock from file stream");
-}
-
-template <typename Platform>
-bool TrackBlock<Platform>::SerializeIn(std::istream &ifstream)
+void TrackBlock<Platform>::SerializeIn(std::istream &ifstream)
 {
     std::streampos trackBlockOffset = ifstream.tellg();
+
     // Read Header
-    SAFE_READ(ifstream, &blockSize, sizeof(uint32_t));
-    SAFE_READ(ifstream, &blockSizeDup, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nExtraBlocks, sizeof(uint16_t));
-    SAFE_READ(ifstream, &unknown, sizeof(uint16_t));
-    SAFE_READ(ifstream, &serialNum, sizeof(uint32_t));
-    SAFE_READ(ifstream, clippingRect, 4 * sizeof(VERT_HIGHP));
-    SAFE_READ(ifstream, &extraBlockTblOffset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nStickToNextVerts, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nLowResVert, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nMedResVert, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nHighResVert, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nLowResPoly, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nMedResPoly, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nHighResPoly, sizeof(uint16_t));
-    SAFE_READ(ifstream, unknownPad, 3 * sizeof(uint16_t));
+    Utils::SafeRead(ifstream, blockSize);
+    Utils::SafeRead(ifstream, blockSizeDup);
+    Utils::SafeRead(ifstream, nExtraBlocks);
+    Utils::SafeRead(ifstream, unknown);
+    Utils::SafeRead(ifstream, serialNum);
+    Utils::SafeRead(ifstream, clippingRect);
+    Utils::SafeRead(ifstream, extraBlockTblOffset);
+    Utils::SafeRead(ifstream, nStickToNextVerts);
+    Utils::SafeRead(ifstream, nLowResVert);
+    Utils::SafeRead(ifstream, nMedResVert);
+    Utils::SafeRead(ifstream, nHighResVert);
+    Utils::SafeRead(ifstream, nLowResPoly);
+    Utils::SafeRead(ifstream, nMedResPoly);
+    Utils::SafeRead(ifstream, nHighResPoly);
+    Utils::SafeRead(ifstream, unknownPad);
 
     // Sanity Checks
     if (blockSize != blockSizeDup)
-    {
-        LOG(DEBUG) << "   --- Bad Block";
-        return false;
-    }
+        throw std::runtime_error{"Bad Block"};
 
     // Read 3D Data
     vertexTable.resize(nStickToNextVerts + nHighResVert);
-    SAFE_READ(ifstream, vertexTable.data(), (nStickToNextVerts + nHighResVert) * sizeof(typename Platform::VERT));
+    Utils::SafeRead(ifstream, vertexTable.begin(), vertexTable.end());
 
     polygonTable.resize(nLowResPoly + nMedResPoly + nHighResPoly);
-    SAFE_READ(ifstream, polygonTable.data(), (nLowResPoly + nMedResPoly + nHighResPoly) * sizeof(typename Platform::POLYGONDATA));
+    Utils::SafeRead(ifstream, polygonTable.begin(), polygonTable.end());
 
     // Read Extrablock data
     ifstream.seekg((uint32_t) trackBlockOffset + 64u + extraBlockTblOffset, std::ios_base::beg);
     // Get extrablock offsets (relative to beginning of TrackBlock)
     extraBlockOffsets.resize(nExtraBlocks);
-    SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
+    Utils::SafeRead(ifstream, extraBlockOffsets.begin(), extraBlockOffsets.end());
 
     for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
         ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
-        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream, this->version));
+
+        ExtraObjectBlock<Platform> extraObjectBlock;
+        ifstream >> extraObjectBlock;
+        extraObjectBlocks.push_back(std::move(extraObjectBlock));
         // Map the the block type to the vector index, original ordering is then maintained for output serialisation
-        extraObjectBlockMap[(ExtraBlockID)extraObjectBlocks.back().id] = extraBlockIdx;
+        extraObjectBlockMap[(ExtraBlockID) extraObjectBlocks.back().id] = extraBlockIdx;
     }
-
-    return true;
-}
-
-template <typename Platform>
-void TrackBlock<Platform>::SerializeOut(std::ostream &ofstream)
-{
-    ASSERT(false, "TrackBlock output serialization is not currently implemented");
 }
 
 template <typename Platform>

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <map>
 
 #include "Common/Enums.h"
 #include "Common/ISerializable.h"
@@ -13,17 +14,11 @@ namespace LibOpenNFS
     namespace NFS2
     {
         template <typename Platform>
-        class TrackBlock : ISerializable
+        class TrackBlock : public IDeserializable
         {
         public:
-            TrackBlock() = default;
-            explicit TrackBlock(std::istream &trk, NFSVer version);
-            void SerializeOut(std::ostream &ofstream) override;
             ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
-
-            // ONFS attribute
-            NFSVer version;
 
             // Raw file data
             uint32_t blockSize;
@@ -41,8 +36,8 @@ namespace LibOpenNFS
             std::vector<uint32_t> extraBlockOffsets;
             std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
 
-        private:
-            bool SerializeIn(std::istream &ifstream) override;
+        protected:
+            void SerializeIn(std::istream &ifstream) override;
 
             // Allows lookup by block type for parsers
             std::map<ExtraBlockID, uint8_t> extraObjectBlockMap;

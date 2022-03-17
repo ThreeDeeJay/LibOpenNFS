@@ -13,21 +13,14 @@ namespace LibOpenNFS
     namespace NFS2
     {
         template <typename Platform>
-        class TrkFile : ISerializable
+        class TrkFile : public IDeserializable
         {
         public:
-            TrkFile() = default;
-            static bool Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version);
-            static void Save(const std::string &trkPath, TrkFile &trkFile);
-
             static const uint8_t HEADER_LENGTH         = 4;
             static const uint8_t UNKNOWN_HEADER_LENGTH = 5;
 
-            // ONFS attribute
-            NFSVer version;
-
             // Raw File data
-            unsigned char header[HEADER_LENGTH];
+            char header[HEADER_LENGTH];
             uint32_t unknownHeader[UNKNOWN_HEADER_LENGTH];
             uint32_t nSuperBlocks;
             uint32_t nBlocks;
@@ -36,8 +29,7 @@ namespace LibOpenNFS
             std::vector<VERT_HIGHP> blockReferenceCoords;
 
         private:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+            void SerializeIn(std::istream &ifstream) override;
         };
     } // namespace NFS2
 } // namespace LibOpenNFS

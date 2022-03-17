@@ -7,13 +7,7 @@ using namespace LibOpenNFS;
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-ExtraObjectBlock<Platform>::ExtraObjectBlock(std::istream &trk)
-{
-    assert(this->SerializeIn(trk) && "Failed to serialize ExtraObjectBlock from file stream");
-}
-
-template <typename Platform>
-bool ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
+void ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
 {
     // Read the header
     Utils::SafeRead(ifstream, recSize);
@@ -46,14 +40,18 @@ bool ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
         nStructureReferences = nRecords;
         for (uint32_t structureRefIdx = 0; structureRefIdx < nStructureReferences; ++structureRefIdx)
         {
-            structureReferences.push_back(StructureRefBlock(ifstream));
+            StructureRefBlock structureReference;
+            ifstream >> structureReference;
+            structureReferences.push_back(std::move(structureReference));
         }
         break;
     case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2 (COL)
         nStructures = nRecords;
         for (uint32_t structureIdx = 0; structureIdx < nStructures; ++structureIdx)
         {
-            structures.push_back(StructureBlock<Platform>(ifstream));
+            StructureBlock<Platform> structure;
+            ifstream >> structure;
+            structures.push_back(std::move(structure));
         }
         break;
     case 9:
@@ -107,13 +105,6 @@ bool ExtraObjectBlock<Platform>::SerializeIn(std::istream &ifstream)
         //    LOG(WARNING) << "Unknown XBID: " << id << " nRecords: " << nRecords << " RecSize: " << recSize;
         break;
     }
-    return true;
-}
-
-template <typename Platform>
-void ExtraObjectBlock<Platform>::SerializeOut(std::ostream &ofstream)
-{
-    assert("ExtraObjectBlock output serialization is not currently implemented" == nullptr);
 }
 
 template class LibOpenNFS::NFS2::ExtraObjectBlock<PS1>;

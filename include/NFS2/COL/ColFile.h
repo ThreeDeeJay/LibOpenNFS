@@ -12,12 +12,8 @@ namespace LibOpenNFS
     namespace NFS2
     {
         template <typename Platform>
-        class ColFile : public ISerializable
+        class ColFile : public IDeserializable
         {
-        public:
-            ColFile(const std::string &colPath);
-            void Save(const std::string &colPath);
-
             ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
 
@@ -32,8 +28,7 @@ namespace LibOpenNFS
             std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
 
         protected:
-            bool SerializeIn(std::istream &ifstream) override;
-            void SerializeOut(std::ostream &ofstream) override;
+            void SerializeIn(std::istream &ifstream) override;
 
             // Allows lookup by block type for parsers
             std::map<ExtraBlockID, uint8_t> extraObjectBlockMap;

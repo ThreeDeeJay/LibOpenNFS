@@ -10,13 +10,9 @@ namespace LibOpenNFS
 {
     namespace NFS2
     {
-        class StructureRefBlock : private ISerializable
+        class StructureRefBlock : public IDeserializable
         {
         public:
-            StructureRefBlock() = default;
-            explicit StructureRefBlock(std::istream &trk);
-            void SerializeOut(std::ostream &ofstream) override;
-
             // XBID = 7, 18
             uint16_t recSize; // If Anim (recType == 3) , recSize == 8 + 20*animation length
             uint8_t recType;
@@ -29,7 +25,7 @@ namespace LibOpenNFS
             std::vector<ANIM_POS> animationData; // Sequence of positions which animation follows
 
         private:
-            bool SerializeIn(std::istream &ifstream) override;
+            void SerializeIn(std::istream &ifstream) override;
         };
     } // namespace NFS2
 } // namespace LibOpenNFS

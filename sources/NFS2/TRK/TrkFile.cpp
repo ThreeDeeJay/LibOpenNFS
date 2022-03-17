@@ -1,72 +1,48 @@
 #include "NFS2/TRK/TrkFile.h"
+#include "Common/Utils.h"
+
+#include <cstring>
 
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version)
-{
-    LOG(INFO) << "Loading TRK File located at " << trkPath;
-    std::ifstream trk(trkPath, std::ios::in | std::ios::binary);
-    trkFile.version = version;
-
-    bool loadStatus = trkFile.SerializeIn(trk);
-    trk.close();
-
-    return loadStatus;
-}
-
-template <typename Platform>
-void TrkFile<Platform>::Save(const std::string &trkPath, TrkFile &trkFile)
-{
-    LOG(INFO) << "Saving TRK File to " << trkPath;
-    std::ofstream trk(trkPath, std::ios::out | std::ios::binary);
-    trkFile.SerializeOut(trk);
-}
-
-template <typename Platform>
-bool TrkFile<Platform>::SerializeIn(std::istream &ifstream)
+void TrkFile<Platform>::SerializeIn(std::istream &ifstream)
 {
     // Check we're in a valid TRK file
-    SAFE_READ(ifstream, header, HEADER_LENGTH);
+    Utils::SafeRead(ifstream, header);
 
     // Header should contain TRAC
-    if (memcmp(header, "TRAC", sizeof(header)) != 0)
+    if (strncmp(header, "TRAC", sizeof(header)) != 0)
     {
-        LOG(WARNING) << "Invalid TRK Header";
-        return false;
+        throw std::runtime_error{"Invalid TRK Header"};
     }
 
     // Unknown header data
-    SAFE_READ(ifstream, unknownHeader, UNKNOWN_HEADER_LENGTH * sizeof(uint32_t));
+    Utils::SafeRead(ifstream, unknownHeader);
 
     // Basic Track data
-    SAFE_READ(ifstream, &nSuperBlocks, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
+    Utils::SafeRead(ifstream, nSuperBlocks);
+    Utils::SafeRead(ifstream, nBlocks);
 
     // Offsets of Superblocks in TRK file
     superBlockOffsets.resize(nSuperBlocks);
-    SAFE_READ(ifstream, superBlockOffsets.data(), nSuperBlocks * sizeof(uint32_t));
+    Utils::SafeRead(ifstream, superBlockOffsets.begin(), superBlockOffsets.end());
 
     // Reference coordinates for each block
     blockReferenceCoords.resize(nBlocks);
-    SAFE_READ(ifstream, blockReferenceCoords.data(), nBlocks * sizeof(VERT_HIGHP));
+    Utils::SafeRead(ifstream, blockReferenceCoords.begin(), blockReferenceCoords.end());
 
     // Go read the superblocks in
     for (uint32_t superBlockIdx = 0; superBlockIdx < nSuperBlocks; ++superBlockIdx)
     {
-        LOG(DEBUG) << "SuperBlock " << superBlockIdx + 1 << " of " << nSuperBlocks;
-        // Jump to the super block
+        // LOG(DEBUG) << "SuperBlock " << superBlockIdx + 1 << " of " << nSuperBlocks;
+        //  Jump to the super block
         ifstream.seekg(superBlockOffsets[superBlockIdx], std::ios_base::beg);
-        superBlocks.push_back(SuperBlock<Platform>(ifstream, this->version));
+
+        SuperBlock<Platform> superBlock;
+        ifstream >> superBlock;
+        superBlocks.push_back(std::move(superBlock));
     }
-
-    return true;
-}
-
-template <typename Platform>
-void TrkFile<Platform>::SerializeOut(std::ostream &ofstream)
-{
-    ASSERT(false, "TRK output serialization is not currently implemented");
 }
 
 template class LibOpenNFS::NFS2::TrkFile<PS1>;

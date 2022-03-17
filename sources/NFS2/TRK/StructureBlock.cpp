@@ -4,13 +4,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-StructureBlock<Platform>::StructureBlock(std::istream &ifstream)
-{
-    assert(this->SerializeIn(ifstream) && "Failed to serialize StructureBlock from file stream");
-}
-
-template <typename Platform>
-bool StructureBlock<Platform>::SerializeIn(std::istream &ifstream)
+void StructureBlock<Platform>::SerializeIn(std::istream &ifstream)
 {
     std::streamoff padCheck = ifstream.tellg();
 
@@ -25,14 +19,6 @@ bool StructureBlock<Platform>::SerializeIn(std::istream &ifstream)
     Utils::SafeRead(ifstream, polygonTable.begin(), polygonTable.end());
 
     ifstream.seekg(recSize - (ifstream.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
-
-    return true;
-}
-
-template <typename Platform>
-void StructureBlock<Platform>::SerializeOut(std::ostream &ofstream)
-{
-    assert(false && "StructureBlock output serialization is not currently implemented");
 }
 
 template class LibOpenNFS::NFS2::StructureBlock<PS1>;

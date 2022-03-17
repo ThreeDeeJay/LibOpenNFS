@@ -103,13 +103,9 @@ namespace LibOpenNFS
         };
 
         template <typename Platform>
-        class ExtraObjectBlock : ISerializable
+        class ExtraObjectBlock : public IDeserializable
         {
         public:
-            ExtraObjectBlock() = default;
-            explicit ExtraObjectBlock(std::istream &trk);
-            void SerializeOut(std::ostream &ofstream) override;
-
             // Raw file data
             uint32_t recSize  = 0;
             uint16_t id       = 0;
@@ -155,8 +151,8 @@ namespace LibOpenNFS
             uint16_t nCollisionData = 0;
             std::vector<COLLISION_BLOCK> collisionData;
 
-        private:
-            bool SerializeIn(std::istream &ifstream) override;
+        protected:
+            void SerializeIn(std::istream &ifstream) override;
         };
 
     } // namespace NFS2

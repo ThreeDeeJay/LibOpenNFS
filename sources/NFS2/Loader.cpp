@@ -5,7 +5,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVer nfsVersion)
+Car NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVer nfsVersion)
 {
     std::filesystem::path p(carBasePath);
     std::string carName = p.filename().string();
