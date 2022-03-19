@@ -8,10 +8,10 @@
 
 using namespace LibOpenNFS::NFS2;
 
-void PshFile::SerializeIn(std::istream &ifstream)
+void PshFile::SerializeIn(std::istream &is)
 {
     // Check we're in a valid TRK file
-    Utils::SafeRead(ifstream, header);
+    Utils::SafeRead(is, header);
 
     // LOG(INFO) << header.nDirectories << " images inside PSH";
 
@@ -21,7 +21,7 @@ void PshFile::SerializeIn(std::istream &ifstream)
 
     // Get the offsets to each image in the PSH
     directoryEntries.resize(header.nDirectories);
-    Utils::SafeRead(ifstream, directoryEntries.begin(), directoryEntries.end());
+    Utils::SafeRead(is, directoryEntries.begin(), directoryEntries.end());
 }
 
 void PshFile::Extract(const std::string &outputPath)
@@ -188,5 +188,5 @@ void PshFile::Extract(const std::string &outputPath)
          delete[] pixels;
      }
  */
-    throw;
+    throw std::runtime_error{"Disabled"};
 }

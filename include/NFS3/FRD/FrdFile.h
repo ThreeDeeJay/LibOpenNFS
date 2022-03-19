@@ -16,7 +16,7 @@ namespace LibOpenNFS
         class FrdFile : public ISerializable, public IDeserializable
         {
         public:
-            static void MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB);
+            void FrdFile::MergeFRD(const FrdFile &frdFile);
 
             // Raw File data
             char header[cHeaderLength];

@@ -4,17 +4,14 @@
 
 using namespace LibOpenNFS::NFS3;
 
-void FrdFile::MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB)
+void FrdFile::MergeFRD(const FrdFile &frdFile)
 {
     // Mergearooney
     // TODO: Of course it couldn't be this simple :(
-    frdFileA.nBlocks += frdFileB.nBlocks;
-    frdFileA.trackBlocks.insert(frdFileA.trackBlocks.end(), frdFileB.trackBlocks.begin(), frdFileB.trackBlocks.end());
-    frdFileA.polygonBlocks.insert(frdFileA.polygonBlocks.end(), frdFileB.polygonBlocks.begin(), frdFileB.polygonBlocks.end());
-    frdFileA.extraObjectBlocks.insert(frdFileA.extraObjectBlocks.end(), frdFileB.extraObjectBlocks.begin(), frdFileB.extraObjectBlocks.end());
-
-    std::ofstream fout{frdPath, std::ios::binary};
-    fout << frdFileA;
+    nBlocks += frdFile.nBlocks;
+    trackBlocks.insert(trackBlocks.end(), frdFile.trackBlocks.begin(), frdFile.trackBlocks.end());
+    polygonBlocks.insert(polygonBlocks.end(), frdFile.polygonBlocks.begin(), frdFile.polygonBlocks.end());
+    extraObjectBlocks.insert(extraObjectBlocks.end(), frdFile.extraObjectBlocks.begin(), frdFile.extraObjectBlocks.end());
 }
 
 void FrdFile::SerializeIn(std::istream &ifstream)
@@ -44,32 +41,24 @@ void FrdFile::SerializeIn(std::istream &ifstream)
     // Track Data
     trackBlocks.reserve(nBlocks);
     for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
-    {
-        trackBlocks.push_back(TrkBlock(ifstream));
-    }
-
+        ifstream >> trackBlocks.emplace_back();
+    
     // Geometry
     polygonBlocks.reserve(nBlocks);
     for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
-    {
-        polygonBlocks.push_back(PolyBlock(ifstream, trackBlocks[blockIdx].nPolygons));
-    }
+        ifstream >> polygonBlocks.emplace_back();
 
     // Extra Track Geometry
     extraObjectBlocks.reserve((4 * nBlocks) + 1);
     for (uint32_t blockIdx = 0; blockIdx <= 4 * nBlocks; ++blockIdx)
-    {
-        extraObjectBlocks.push_back(ExtraObjectBlock(ifstream));
-    }
+        ifstream >> extraObjectBlocks.emplace_back();
 
     // Texture Table
     Utils::SafeRead(ifstream, nTextures);
 
     textureBlocks.reserve(nTextures);
-    for (uint32_t tex_Idx = 0; tex_Idx < nTextures; tex_Idx++)
-    {
-        textureBlocks.push_back(TexBlock(ifstream));
-    }
+    for (uint32_t tex_Idx = 0; tex_Idx < nTextures; ++tex_Idx)
+        ifstream >> textureBlocks.emplace_back();
 }
 
 void FrdFile::SerializeOut(std::ostream &ofstream) const

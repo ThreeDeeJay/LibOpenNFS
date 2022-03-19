@@ -3,26 +3,26 @@
 using namespace LibOpenNFS::NFS2;
 
 template <Platform platform>
-void TrackBlock<platform>::SerializeIn(std::istream &ifstream)
+void TrackBlock<platform>::SerializeIn(std::istream &is)
 {
-    auto trackBlockOffset{ifstream.tellg()};
+    auto trackBlockOffset{is.tellg()};
 
     // Read Header
-    Utils::SafeRead(ifstream, blockSize);
-    Utils::SafeRead(ifstream, blockSizeDup);
-    Utils::SafeRead(ifstream, nExtraBlocks);
-    Utils::SafeRead(ifstream, unknown);
-    Utils::SafeRead(ifstream, serialNum);
-    Utils::SafeRead(ifstream, clippingRect);
-    Utils::SafeRead(ifstream, extraBlockTblOffset);
-    Utils::SafeRead(ifstream, nStickToNextVerts);
-    Utils::SafeRead(ifstream, nLowResVert);
-    Utils::SafeRead(ifstream, nMedResVert);
-    Utils::SafeRead(ifstream, nHighResVert);
-    Utils::SafeRead(ifstream, nLowResPoly);
-    Utils::SafeRead(ifstream, nMedResPoly);
-    Utils::SafeRead(ifstream, nHighResPoly);
-    Utils::SafeRead(ifstream, unknownPad);
+    Utils::SafeRead(is, blockSize);
+    Utils::SafeRead(is, blockSizeDup);
+    Utils::SafeRead(is, nExtraBlocks);
+    Utils::SafeRead(is, unknown);
+    Utils::SafeRead(is, serialNum);
+    Utils::SafeRead(is, clippingRect);
+    Utils::SafeRead(is, extraBlockTblOffset);
+    Utils::SafeRead(is, nStickToNextVerts);
+    Utils::SafeRead(is, nLowResVert);
+    Utils::SafeRead(is, nMedResVert);
+    Utils::SafeRead(is, nHighResVert);
+    Utils::SafeRead(is, nLowResPoly);
+    Utils::SafeRead(is, nMedResPoly);
+    Utils::SafeRead(is, nHighResPoly);
+    Utils::SafeRead(is, unknownPad);
 
     // Sanity Checks
     if (blockSize != blockSizeDup)
@@ -30,24 +30,22 @@ void TrackBlock<platform>::SerializeIn(std::istream &ifstream)
 
     // Read 3D Data
     vertexTable.resize(nStickToNextVerts + nHighResVert);
-    Utils::SafeRead(ifstream, vertexTable.begin(), vertexTable.end());
+    Utils::SafeRead(is, vertexTable.begin(), vertexTable.end());
 
     polygonTable.resize(nLowResPoly + nMedResPoly + nHighResPoly);
-    Utils::SafeRead(ifstream, polygonTable.begin(), polygonTable.end());
+    Utils::SafeRead(is, polygonTable.begin(), polygonTable.end());
 
     // Read Extrablock data
-    ifstream.seekg((uint32_t) trackBlockOffset + 64u + extraBlockTblOffset, std::ios_base::beg);
+    is.seekg(trackBlockOffset + 64u + extraBlockTblOffset, std::ios_base::beg);
+
     // Get extrablock offsets (relative to beginning of TrackBlock)
     extraBlockOffsets.resize(nExtraBlocks);
-    Utils::SafeRead(ifstream, extraBlockOffsets.begin(), extraBlockOffsets.end());
+    Utils::SafeRead(is, extraBlockOffsets.begin(), extraBlockOffsets.end());
 
     for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
-        ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
-
-        ExtraObjectBlock<platform> extraObjectBlock;
-        ifstream >> extraObjectBlock;
-        extraObjectBlocks.push_back(std::move(extraObjectBlock));
+        is.seekg(trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
+        is >> extraObjectBlocks.emplace_back();
         
         // Map the the block type to the vector index, original ordering is then maintained for output serialisation
         extraObjectBlockMap[(ExtraBlockID) extraObjectBlocks.back().id] = extraBlockIdx;

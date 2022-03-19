@@ -3,29 +3,27 @@
 using namespace LibOpenNFS::NFS2;
 
 template <Platform platform>
-void SuperBlock<platform>::SerializeIn(std::istream &ifstream)
+void SuperBlock<platform>::SerializeIn(std::istream &is)
 {
     // TODO: Gross, needs to be relative//passed in
-    std::streampos superblockOffset = ifstream.tellg();
-    Utils::SafeRead(ifstream, superBlockSize);
-    Utils::SafeRead(ifstream, nBlocks);
-    Utils::SafeRead(ifstream, padding);
+    auto superblockOffset = is.tellg();
+    Utils::SafeRead(is, superBlockSize);
+    Utils::SafeRead(is, nBlocks);
+    Utils::SafeRead(is, padding);
 
     if (nBlocks != 0)
     {
         // Get the offsets of the child blocks within superblock
         blockOffsets.resize(nBlocks);
-        Utils::SafeRead(ifstream, blockOffsets.begin(), blockOffsets.end());
+        Utils::SafeRead(is, blockOffsets.begin(), blockOffsets.end());
 
         for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
         {
             // LOG(DEBUG) << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->serialNum << "]";
             // TODO: Fix this
-            ifstream.seekg((uint32_t) superblockOffset + blockOffsets[blockIdx], std::ios_base::beg);
+            is.seekg(superblockOffset + blockOffsets[blockIdx], std::ios_base::beg);
 
-            TrackBlock<platform> trackBlock;
-            ifstream >> trackBlock;
-            trackBlocks.push_back(std::move(trackBlock));
+            is >> trackBlocks.emplace_back();
         }
     }
 }

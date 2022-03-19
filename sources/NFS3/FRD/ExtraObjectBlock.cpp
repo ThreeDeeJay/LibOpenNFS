@@ -41,7 +41,7 @@ void ExtraObjectBlock::SerializeIn(std::istream &ifstream)
             x.ptRef = Utils::FixedToFloat(x.animData[0].pt);
         }
         else
-            throw; // unknown object type
+            throw std::runtime_error{"Unknown object type"};
 
         // Get number of vertices
         Utils::SafeRead(ifstream, x.nVertices);
@@ -65,7 +65,7 @@ void ExtraObjectBlock::SerializeIn(std::istream &ifstream)
     }
 }
 
-void ExtraObjectBlock::SerializeOut(std::ostream &ofstream)
+void ExtraObjectBlock::SerializeOut(std::ostream &ofstream) const
 {
     ofstream.write((char *) &(nobj), sizeof(uint32_t));
 
@@ -91,6 +91,7 @@ void ExtraObjectBlock::SerializeOut(std::ostream &ofstream)
             ofstream.write((char *) &obj[xobjIdx].AnimDelay, sizeof(uint16_t));
             ofstream.write((char *) obj[xobjIdx].animData.data(), sizeof(AnimData) * obj[xobjIdx].nAnimLength);
         }
+        
         ofstream.write((char *) &(obj[xobjIdx].nVertices), sizeof(uint32_t));
         ofstream.write((char *) obj[xobjIdx].vert.data(), sizeof(glm::vec3) * obj[xobjIdx].nVertices);
         ofstream.write((char *) obj[xobjIdx].vertShading.data(), sizeof(uint32_t) * obj[xobjIdx].nVertices);

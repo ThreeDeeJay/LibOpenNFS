@@ -127,7 +127,7 @@ namespace LibOpenNFS
                 delete[] vertices;
                 delete[] polygons;
             }*/
-            throw;
+            throw std::runtime_error{"Disabled"};
         }
 
         template <>
@@ -380,7 +380,7 @@ namespace LibOpenNFS
                 delete xblock_4;
                 delete xblock_5;
             }*/
-            throw;
+            throw std::runtime_error{"Disabled"};
         }
 
         template class GeoFile<Platform::PS1>;

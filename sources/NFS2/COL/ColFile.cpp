@@ -7,32 +7,31 @@ using namespace LibOpenNFS;
 using namespace LibOpenNFS::NFS2;
 
 template <Platform platform>
-void ColFile<platform>::SerializeIn(std::istream &ifstream)
+void ColFile<platform>::SerializeIn(std::istream &is)
 {
-    // Check we're in a valid TRK file
-    Utils::SafeRead(ifstream, header);
+    auto beginSeek = is.tellg();
 
-    if(strncmp(header, "COLL", sizeof(header)) != 0)
+    // Check we're in a valid TRK file
+    Utils::SafeRead(is, header);
+
+    if (strncmp(header, "COLL", sizeof(header)) != 0)
         throw std::runtime_error{"Invalid Col Header(s)"};
 
-    Utils::SafeRead(ifstream, colVersion);
+    Utils::SafeRead(is, colVersion);
     if (colVersion != 11)
         throw std::runtime_error{"Invalid Col version"};
 
-    Utils::SafeRead(ifstream, size);
-    Utils::SafeRead(ifstream, nExtraBlocks);
+    Utils::SafeRead(is, size);
+    Utils::SafeRead(is, nExtraBlocks);
 
     extraBlockOffsets.resize(nExtraBlocks);
-    Utils::SafeRead(ifstream, extraBlockOffsets.begin(), extraBlockOffsets.end());
+    Utils::SafeRead(is, extraBlockOffsets.begin(), extraBlockOffsets.end());
 
     for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
-        ifstream.seekg(16 + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
+        is.seekg(beginSeek + 16 + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
         
-        ExtraObjectBlock<platform> extraObjectBlock;
-        ifstream >> extraObjectBlock;
-        
-        extraObjectBlocks.push_back(std::move(extraObjectBlock));
+        is >> extraObjectBlocks.emplace_back();
 
         // Map the the block type to the vector index, gross, original ordering is then maintained for output serialisation
         extraObjectBlockMap[static_cast<ExtraBlockID>(extraObjectBlocks.back().id)] = extraBlockIdx;

@@ -4,57 +4,49 @@ using namespace LibOpenNFS;
 using namespace LibOpenNFS::NFS2;
 
 template <Platform platform>
-void ExtraObjectBlock<platform>::SerializeIn(std::istream &ifstream)
+void ExtraObjectBlock<platform>::SerializeIn(std::istream &is)
 {
     // Read the header
-    Utils::SafeRead(ifstream, recSize);
-    Utils::SafeRead(ifstream, id);
-    Utils::SafeRead(ifstream, nRecords);
+    Utils::SafeRead(is, recSize);
+    Utils::SafeRead(is, id);
+    Utils::SafeRead(is, nRecords);
 
     switch (id)
     {
     case 2: // First xblock always texture table (in COL)
         nTextures = nRecords;
         polyToQfsTexTable.resize(nTextures);
-        Utils::SafeRead(ifstream, polyToQfsTexTable.begin(), polyToQfsTexTable.end());
+        Utils::SafeRead(is, polyToQfsTexTable.begin(), polyToQfsTexTable.end());
         break;
     case 4:
         nNeighbours = nRecords;
         blockNeighbours.resize(nRecords);
-        Utils::SafeRead(ifstream, blockNeighbours.begin(), blockNeighbours.end());
+        Utils::SafeRead(is, blockNeighbours.begin(), blockNeighbours.end());
         break;
     case 5:
         polyTypes.resize(nRecords);
-        Utils::SafeRead(ifstream, polyTypes.begin(), polyTypes.end());
+        Utils::SafeRead(is, polyTypes.begin(), polyTypes.end());
         break;
     case 6:
         medianData.resize(nRecords);
-        Utils::SafeRead(ifstream, medianData.begin(), medianData.end());
+        Utils::SafeRead(is, medianData.begin(), medianData.end());
         break;
     case 7:
     case 18:
     case 19:
         nStructureReferences = nRecords;
         for (uint32_t structureRefIdx = 0; structureRefIdx < nStructureReferences; ++structureRefIdx)
-        {
-            StructureRefBlock structureReference;
-            ifstream >> structureReference;
-            structureReferences.push_back(std::move(structureReference));
-        }
+            is >> structureReferences.emplace_back();
         break;
     case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2 (COL)
         nStructures = nRecords;
         for (uint32_t structureIdx = 0; structureIdx < nStructures; ++structureIdx)
-        {
-            StructureBlock<platform> structure;
-            ifstream >> structure;
-            structures.push_back(std::move(structure));
-        }
+            is >> structures.emplace_back();
         break;
     case 9:
         nLanes = nRecords;
         laneData.resize(nRecords);
-        Utils::SafeRead(ifstream, laneData.begin(), laneData.end());
+        Utils::SafeRead(is, laneData.begin(), laneData.end());
         break;
     // case 10: // PS1 Specific id, Misc purpose
     // {
@@ -80,12 +72,12 @@ void ExtraObjectBlock<platform>::SerializeIn(std::istream &ifstream)
         if constexpr (platform == Platform::PS1)
         {
             ps1VroadData.resize(nVroad);
-            Utils::SafeRead(ifstream, ps1VroadData.begin(), ps1VroadData.end());
+            Utils::SafeRead(is, ps1VroadData.begin(), ps1VroadData.end());
         }
         else if constexpr (platform == Platform::PC)
         {
             vroadData.resize(nVroad);
-            Utils::SafeRead(ifstream, vroadData.begin(), vroadData.end());
+            Utils::SafeRead(is, vroadData.begin(), vroadData.end());
         }
         else
         {
@@ -95,7 +87,7 @@ void ExtraObjectBlock<platform>::SerializeIn(std::istream &ifstream)
     case 15:
         nCollisionData = nRecords;
         collisionData.resize(nCollisionData);
-        Utils::SafeRead(ifstream, collisionData.begin(), collisionData.end());
+        Utils::SafeRead(is, collisionData.begin(), collisionData.end());
         break;
     default:
         throw;

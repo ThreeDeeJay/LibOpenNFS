@@ -3,21 +3,21 @@
 using namespace LibOpenNFS::NFS2;
 
 template <Platform platform>
-void StructureBlock<platform>::SerializeIn(std::istream &ifstream)
+void StructureBlock<platform>::SerializeIn(std::istream &is)
 {
-    std::streamoff padCheck = ifstream.tellg();
+    auto padCheck = is.tellg();
 
-    Utils::SafeRead(ifstream, recSize);
-    Utils::SafeRead(ifstream, nVerts);
-    Utils::SafeRead(ifstream, nPoly);
+    Utils::SafeRead(is, recSize);
+    Utils::SafeRead(is, nVerts);
+    Utils::SafeRead(is, nPoly);
 
     vertexTable.resize(nVerts);
-    Utils::SafeRead(ifstream, vertexTable.begin(), vertexTable.end());
+    Utils::SafeRead(is, vertexTable.begin(), vertexTable.end());
 
     polygonTable.resize(nPoly);
-    Utils::SafeRead(ifstream, polygonTable.begin(), polygonTable.end());
+    Utils::SafeRead(is, polygonTable.begin(), polygonTable.end());
 
-    ifstream.seekg(recSize - (ifstream.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
+    is.seekg(recSize - (is.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
 }
 
 template class LibOpenNFS::NFS2::StructureBlock<Platform::PS1>;
