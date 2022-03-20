@@ -5,13 +5,24 @@
 #include "NFS2/PSH/PshFile.h"
 #include "NFS2/TRK/TrkFile.h"
 
+#include "NFS5/CRP/CRPFile.h"
+#include "NFS5/VIV/VIVFile.h"
+
 int main()
+try
 {
-    LibOpenNFS::NFS2::TrkFile<LibOpenNFS::NFS2::Platform::PC> a;
+    std::ifstream fin{"zzzymus.viv", std::ios::binary};
 
-    std::ifstream fin{"tr00.trk", std::ios::binary};
+    LibOpenNFS::NFS5::VIVFile c;
+    
+    fin >> c;
 
-    fin >> a;
+    std::ofstream fout{"a.bnk", std::ios::binary};
 
-    std::cout << "asd";
+    fout.write(c.files[0].data.data(), c.files[0].data.size());
+
+}
+catch(std::exception& e)
+{
+    std::cerr << e.what();
 }

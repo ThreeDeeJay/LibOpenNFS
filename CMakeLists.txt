@@ -28,7 +28,12 @@ set(NFS2_SOURCES
         #${SOURCE_DIR}/NFS2/Loader.cpp
 )
 
-add_library(${PROJECT_NAME}_obj OBJECT ${NFS2_SOURCES})
+set(NFS5_SOURCES
+        ${SOURCE_DIR}/NFS5/CRP/CRPFile.cpp
+        ${SOURCE_DIR}/NFS5/VIV/VIVFile.cpp
+)
+
+add_library(${PROJECT_NAME}_obj OBJECT ${NFS2_SOURCES} ${NFS5_SOURCES})
 
 set_property(TARGET ${PROJECT_NAME}_obj PROPERTY POSITION_INDEPENDENT_CODE 1)
 
